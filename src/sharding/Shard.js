@@ -265,6 +265,8 @@ class Shard extends EventEmitter {
     // Shard is dead (maybe respawning), don't cache anything and error immediately
     if (!this.process && !this.worker) return Promise.reject(new Error('SHARDING_NO_CHILD_EXISTS', this.id));
 
+    if (typeof script === 'function') script = `(${script})(this)`;
+
     // Cached promise from previous call
     if (this._evals.has(script)) return this._evals.get(script);
 
@@ -280,8 +282,7 @@ class Shard extends EventEmitter {
       };
       child.on('message', listener);
 
-      const _eval = typeof script === 'function' ? `(${script})(this)` : script;
-      this.send({ _eval }).catch(err => {
+      this.send({ _eval: script }).catch(err => {
         child.removeListener('message', listener);
         this._evals.delete(script);
         reject(err);

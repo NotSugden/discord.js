@@ -1323,7 +1323,7 @@ class Guild extends Base {
    *   .catch(console.error);
    */
   async leave() {
-    if (this.ownerID === this.client.user.id) return Promise.reject(new Error('GUILD_OWNED'));
+    if (this.ownerID === this.client.user.id) throw new Error('GUILD_OWNED');
     await this.client.api.users('@me').guilds(this.id).delete();
     return this.client.actions.GuildDelete.handle({ id: this.id }).guild;
   }

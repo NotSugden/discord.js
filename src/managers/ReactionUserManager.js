@@ -60,7 +60,8 @@ class ReactionUserManager extends BaseManager {
     await this.client.api
       .channels(message.channel.id)
       .messages(message.id)
-      .reactions(this.reaction.emoji.identifier, userID === this.client.user.id ? '@me' : userID);
+      .reactions(this.reaction.emoji.identifier, userID === this.client.user.id ? '@me' : userID)
+      .delete();
     return this.reaction;
   }
 }

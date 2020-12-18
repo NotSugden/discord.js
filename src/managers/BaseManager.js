@@ -43,7 +43,7 @@ class BaseManager {
 
   add(data, cache = true, { id, extras = [] } = {}) {
     const existing = this.cache.get(id || data.id);
-    if (cache) existing?._patch(data);
+    if (cache) existing?._patch?.(data);
     if (existing) return existing;
 
     const entry = this.holds ? new this.holds(this.client, data, ...extras) : data;

@@ -21,7 +21,6 @@ class GuildTemplate extends Base {
   /**
    * Builds or updates the template with the provided data.
    * @param {Object} data The raw data for the template
-   * @returns {GuildTemplate}
    * @private
    */
   _patch(data) {
@@ -91,8 +90,6 @@ class GuildTemplate extends Base {
      * @type {?boolean}
      */
     this.unSynced = 'is_dirty' in data ? Boolean(data.is_dirty) : null;
-
-    return this;
   }
 
   /**

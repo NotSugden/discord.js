@@ -112,31 +112,23 @@ class RoleManager extends BaseManager {
    *   .then(console.log)
    *   .catch(console.error);
    */
-  create(options = {}) {
-    let { name, color, hoist, permissions, position, mentionable, reason } = options;
-    if (color) color = resolveColor(color);
-    if (permissions) permissions = Permissions.resolve(permissions).toString();
-
-    return this.client.api
-      .guilds(this.guild.id)
-      .roles.post({
-        data: {
-          name,
-          color,
-          hoist,
-          permissions,
-          mentionable,
-        },
-        reason,
-      })
-      .then(r => {
-        const { role } = this.client.actions.GuildRoleCreate.handle({
-          guild_id: this.guild.id,
-          role: r,
-        });
-        if (position) return role.setPosition(position, reason);
-        return role;
-      });
+  async create({ name, color, hoist, permissions, position, mentionable, reason } = {}) {
+    const roleData = await this.guild.client.api.guilds(this.guild.id).roles.post({
+      data: {
+        name,
+        color: color && resolveColor(color),
+        hoist,
+        permissions: permissions && Permissions.resolve(permissions).toString(),
+        mentionable,
+      },
+      reason,
+    });
+    const { role } = this.client.actions.GuildRoleCreate.handle({
+      guild_id: this.guild.id,
+      role: roleData,
+    });
+    if (position) return role.setPosition(position, reason);
+    return role;
   }
 
   /**

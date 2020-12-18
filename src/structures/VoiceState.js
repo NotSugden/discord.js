@@ -123,7 +123,7 @@ class VoiceState extends Base {
    * @readonly
    */
   get speaking() {
-    return this.channel && this.channel.connection ? Boolean(this.channel.connection._speaking.get(this.id)) : null;
+    return this.channel?.connection ? this.channel.connection._speaking.has(this.id) : null;
   }
 
   /**

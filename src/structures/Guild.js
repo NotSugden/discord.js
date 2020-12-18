@@ -159,7 +159,7 @@ class Guild extends Base {
      * Whether the guild is "large" (has more than large_threshold members, 50 by default)
      * @type {boolean}
      */
-    this.large = Boolean('large' in data ? data.large : this.large);
+    this.large = Boolean(data.large ?? this.large);
 
     /**
      * An array of enabled guild features, here are the possible values:
@@ -605,14 +605,10 @@ class Guild extends Base {
    * Fetches this guild.
    * @returns {Promise<Guild>}
    */
-  fetch() {
-    return this.client.api
-      .guilds(this.id)
-      .get({ query: { with_counts: true } })
-      .then(data => {
-        this._patch(data);
-        return this;
-      });
+  async fetch() {
+    const data = await this.client.api.guilds(this.id).get({ query: { with_counts: true } });
+    this._patch(data);
+    return this;
   }
 
   /**
@@ -627,36 +623,29 @@ class Guild extends Base {
    * @param {UserResolvable} user The User to fetch the ban info of
    * @returns {Promise<BanInfo>}
    */
-  fetchBan(user) {
+  async fetchBan(user) {
     const id = this.client.users.resolveID(user);
     if (!id) throw new Error('FETCH_BAN_RESOLVE_ID');
-    return this.client.api
-      .guilds(this.id)
-      .bans(id)
-      .get()
-      .then(ban => ({
-        reason: ban.reason,
-        user: this.client.users.add(ban.user),
-      }));
+    const ban = await this.client.api.guilds(this.id).bans(id).get();
+    return {
+      reason: ban.reason,
+      user: this.client.users.add(ban.user),
+    };
   }
 
   /**
    * Fetches a collection of banned users in this guild.
    * @returns {Promise<Collection<Snowflake, BanInfo>>}
    */
-  fetchBans() {
-    return this.client.api
-      .guilds(this.id)
-      .bans.get()
-      .then(bans =>
-        bans.reduce((collection, ban) => {
-          collection.set(ban.user.id, {
-            reason: ban.reason,
-            user: this.client.users.add(ban.user),
-          });
-          return collection;
-        }, new Collection()),
-      );
+  async fetchBans() {
+    const bans = await this.client.api.guilds(this.id).bans.get();
+    return bans.reduce((collection, ban) => {
+      collection.set(ban.user.id, {
+        reason: ban.reason,
+        user: this.client.users.add(ban.user),
+      });
+      return collection;
+    }, new Collection());
   }
 
   /**
@@ -682,13 +671,9 @@ class Guild extends Base {
    * Resolves with a collection mapping templates by their codes.
    * @returns {Promise<Collection<string, GuildTemplate>>}
    */
-  fetchTemplates() {
-    return this.client.api
-      .guilds(this.id)
-      .templates.get()
-      .then(templates =>
-        templates.reduce((col, data) => col.set(data.code, new GuildTemplate(this.client, data)), new Collection()),
-      );
+  async fetchTemplates() {
+    const templates = await this.client.api.guilds(this.id).templates.get();
+    return templates.reduce((col, data) => col.set(data.code, new GuildTemplate(this.client, data)), new Collection());
   }
 
   /**
@@ -704,11 +689,9 @@ class Guild extends Base {
    * @param {string} reason Reason for creating the integration
    * @returns {Promise<Guild>}
    */
-  createIntegration(data, reason) {
-    return this.client.api
-      .guilds(this.id)
-      .integrations.post({ data, reason })
-      .then(() => this);
+  async createIntegration(data, reason) {
+    await this.client.api.guilds(this.id).integrations.post({ data, reason });
+    return this;
   }
 
   /**
@@ -717,11 +700,9 @@ class Guild extends Base {
    * @param {string} [description] The description for the template
    * @returns {Promise<GuildTemplate>}
    */
-  createTemplate(name, description) {
-    return this.client.api
-      .guilds(this.id)
-      .templates.post({ data: { name, description } })
-      .then(data => new GuildTemplate(this.client, data));
+  async createTemplate(name, description) {
+    const data = await this.client.api.guilds(this.id).templates.post({ data: { name, description } });
+    return new GuildTemplate(this.client, data);
   }
 
   /**
@@ -739,29 +720,23 @@ class Guild extends Base {
    *  .then(invites => console.log(invites.find(invite => invite.inviter.id === '84484653687267328')))
    *  .catch(console.error);
    */
-  fetchInvites() {
-    return this.client.api
-      .guilds(this.id)
-      .invites.get()
-      .then(inviteItems => {
-        const invites = new Collection();
-        for (const inviteItem of inviteItems) {
-          const invite = new Invite(this.client, inviteItem);
-          invites.set(invite.code, invite);
-        }
-        return invites;
-      });
+  async fetchInvites() {
+    const data = await this.client.api.guilds(this.id).invites.get();
+    const invites = new Collection();
+    for (const inviteItem of data) {
+      const invite = new Invite(this.client, inviteItem);
+      invites.set(invite.code, invite);
+    }
+    return invites;
   }
 
   /**
    * Obtains a guild preview for this guild from Discord.
    * @returns {Promise<GuildPreview>}
    */
-  fetchPreview() {
-    return this.client.api
-      .guilds(this.id)
-      .preview.get()
-      .then(data => new GuildPreview(this.client, data));
+  async fetchPreview() {
+    const data = await this.client.api.guilds(this.id).preview.get();
+    return new GuildPreview(this.client, data);
   }
 
   /**
@@ -777,8 +752,9 @@ class Guild extends Base {
    *   })
    *   .catch(console.error);
    */
-  fetchVanityCode() {
-    return this.fetchVanityData().then(vanity => vanity.code);
+  async fetchVanityCode() {
+    const { code } = await this.fetchVanityData();
+    return code;
   }
 
   /**
@@ -819,30 +795,22 @@ class Guild extends Base {
    *   .then(webhooks => console.log(`Fetched ${webhooks.size} webhooks`))
    *   .catch(console.error);
    */
-  fetchWebhooks() {
-    return this.client.api
-      .guilds(this.id)
-      .webhooks.get()
-      .then(data => {
-        const hooks = new Collection();
-        for (const hook of data) hooks.set(hook.id, new Webhook(this.client, hook));
-        return hooks;
-      });
+  async fetchWebhooks() {
+    const data = await this.client.api.guilds(this.id).webhooks.get();
+    const hooks = new Collection();
+    for (const hook of data) hooks.set(hook.id, new Webhook(this.client, hook));
+    return hooks;
   }
 
   /**
    * Fetches available voice regions.
    * @returns {Promise<Collection<string, VoiceRegion>>}
    */
-  fetchVoiceRegions() {
-    return this.client.api
-      .guilds(this.id)
-      .regions.get()
-      .then(res => {
-        const regions = new Collection();
-        for (const region of res) regions.set(region.id, new VoiceRegion(region));
-        return regions;
-      });
+  async fetchVoiceRegions() {
+    const data = await this.client.api.guilds(this.id).regions.get();
+    const regions = new Collection();
+    for (const region of data) regions.set(region.id, new VoiceRegion(region));
+    return regions;
   }
 
   /**
@@ -892,21 +860,19 @@ class Guild extends Base {
    *   .then(audit => console.log(audit.entries.first()))
    *   .catch(console.error);
    */
-  fetchAuditLogs(options = {}) {
+  async fetchAuditLogs(options = {}) {
     if (options.before && options.before instanceof GuildAuditLogs.Entry) options.before = options.before.id;
     if (typeof options.type === 'string') options.type = GuildAuditLogs.Actions[options.type];
 
-    return this.client.api
-      .guilds(this.id)
-      ['audit-logs'].get({
-        query: {
-          before: options.before,
-          limit: options.limit,
-          user_id: this.client.users.resolveID(options.user),
-          action_type: options.type,
-        },
-      })
-      .then(data => GuildAuditLogs.build(this, data));
+    const data = await this.client.api.guilds(this.id)['audit-logs'].get({
+      query: {
+        before: options.before,
+        limit: options.limit,
+        user_id: this.client.users.resolveID(options.user),
+        action_type: options.type,
+      },
+    });
+    return GuildAuditLogs.build(this, data);
   }
 
   /**
@@ -979,14 +945,14 @@ class Guild extends Base {
    *   .then(updated => console.log(`New guild name ${updated} in region ${updated.region}`))
    *   .catch(console.error);
    */
-  edit(data, reason) {
+  async edit(data, reason) {
     const _data = {};
     if (data.name) _data.name = data.name;
     if (data.region) _data.region = data.region;
     if (typeof data.verificationLevel !== 'undefined') {
       _data.verification_level =
         typeof data.verificationLevel === 'number'
-          ? Number(data.verificationLevel)
+          ? data.verificationLevel
           : VerificationLevels.indexOf(data.verificationLevel);
     }
     if (typeof data.afkChannel !== 'undefined') {
@@ -1009,9 +975,9 @@ class Guild extends Base {
     }
     if (typeof data.defaultMessageNotifications !== 'undefined') {
       _data.default_message_notifications =
-        typeof data.defaultMessageNotifications === 'string'
-          ? DefaultMessageNotifications.indexOf(data.defaultMessageNotifications)
-          : data.defaultMessageNotifications;
+        typeof data.defaultMessageNotifications === 'number'
+          ? data.defaultMessageNotifications
+          : DefaultMessageNotifications.indexOf(data.defaultMessageNotifications);
     }
     if (typeof data.systemChannelFlags !== 'undefined') {
       _data.system_channel_flags = SystemChannelFlags.resolve(data.systemChannelFlags);
@@ -1023,10 +989,8 @@ class Guild extends Base {
       _data.public_updates_channel_id = this.client.channels.resolveID(data.publicUpdatesChannel);
     }
     if (data.preferredLocale) _data.preferred_locale = data.preferredLocale;
-    return this.client.api
-      .guilds(this.id)
-      .patch({ data: _data, reason })
-      .then(newData => this.client.actions.GuildUpdate.handle(newData).updated);
+    const newData = await this.client.api.guilds(this.id).patch({ data: _data, reason });
+    return this.client.actions.GuildUpdate.handle(newData).updated;
   }
 
   /**
@@ -1286,22 +1250,17 @@ class Guild extends Base {
    *   .then(guild => console.log(`Updated channel positions for ${guild}`))
    *   .catch(console.error);
    */
-  setChannelPositions(channelPositions) {
+  async setChannelPositions(channelPositions) {
     const updatedChannels = channelPositions.map(r => ({
       id: this.client.channels.resolveID(r.channel),
       position: r.position,
     }));
 
-    return this.client.api
-      .guilds(this.id)
-      .channels.patch({ data: updatedChannels })
-      .then(
-        () =>
-          this.client.actions.GuildChannelsPositionUpdate.handle({
-            guild_id: this.id,
-            channels: updatedChannels,
-          }).guild,
-      );
+    await this.client.api.guilds(this.id).channels.patch({ data: updatedChannels });
+    return this.client.actions.GuildChannelsPositionUpdate.handle({
+      guild_id: this.id,
+      channels: updatedChannels,
+    }).guild;
   }
 
   /**
@@ -1320,7 +1279,7 @@ class Guild extends Base {
    *  .then(guild => console.log(`Role positions updated for ${guild}`))
    *  .catch(console.error);
    */
-  setRolePositions(rolePositions) {
+  async setRolePositions(rolePositions) {
     // Make sure rolePositions are prepared for API
     rolePositions = rolePositions.map(o => ({
       id: this.roles.resolveID(o.role),
@@ -1328,18 +1287,13 @@ class Guild extends Base {
     }));
 
     // Call the API to update role positions
-    return this.client.api
-      .guilds(this.id)
-      .roles.patch({
-        data: rolePositions,
-      })
-      .then(
-        () =>
-          this.client.actions.GuildRolesPositionUpdate.handle({
-            guild_id: this.id,
-            roles: rolePositions,
-          }).guild,
-      );
+    await this.client.api.guilds(this.id).roles.patch({
+      data: rolePositions,
+    });
+    return this.client.actions.GuildRolesPositionUpdate.handle({
+      guild_id: this.id,
+      roles: rolePositions,
+    }).guild;
   }
 
   /**
@@ -1348,17 +1302,15 @@ class Guild extends Base {
    * @param {string} [reason] Reason for changing the guild's widget
    * @returns {Promise<Guild>}
    */
-  setWidget(widget, reason) {
-    return this.client.api
-      .guilds(this.id)
-      .widget.patch({
-        data: {
-          enabled: widget.enabled,
-          channel_id: this.channels.resolveID(widget.channel),
-        },
-        reason,
-      })
-      .then(() => this);
+  async setWidget(widget, reason) {
+    await this.client.api.guilds(this.id).widget.patch({
+      data: {
+        enabled: widget.enabled,
+        channel_id: this.channels.resolveID(widget.channel),
+      },
+      reason,
+    });
+    return this;
   }
 
   /**
@@ -1370,13 +1322,10 @@ class Guild extends Base {
    *   .then(g => console.log(`Left the guild ${g}`))
    *   .catch(console.error);
    */
-  leave() {
+  async leave() {
     if (this.ownerID === this.client.user.id) return Promise.reject(new Error('GUILD_OWNED'));
-    return this.client.api
-      .users('@me')
-      .guilds(this.id)
-      .delete()
-      .then(() => this.client.actions.GuildDelete.handle({ id: this.id }).guild);
+    await this.client.api.users('@me').guilds(this.id).delete();
+    return this.client.actions.GuildDelete.handle({ id: this.id }).guild;
   }
 
   /**
@@ -1388,11 +1337,9 @@ class Guild extends Base {
    *   .then(g => console.log(`Deleted the guild ${g}`))
    *   .catch(console.error);
    */
-  delete() {
-    return this.client.api
-      .guilds(this.id)
-      .delete()
-      .then(() => this.client.actions.GuildDelete.handle({ id: this.id }).guild);
+  async delete() {
+    await this.client.api.guilds(this.id).delete();
+    return this.client.actions.GuildDelete.handle({ id: this.id }).guild;
   }
 
   /**

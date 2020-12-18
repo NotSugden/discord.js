@@ -80,12 +80,11 @@ class MessageManager extends BaseManager {
    *   .then(messages => console.log(`Received ${messages.size} messages`))
    *   .catch(console.error);
    */
-  fetchPinned(cache = true) {
-    return this.client.api.channels[this.channel.id].pins.get().then(data => {
-      const messages = new Collection();
-      for (const message of data) messages.set(message.id, this.add(message, cache));
-      return messages;
-    });
+  async fetchPinned(cache = true) {
+    const data = await this.client.api.channels(this.channel.id).pins.get();
+    const messages = new Collection();
+    for (const message of data) messages.set(message.id, this.add(message, cache));
+    return messages;
   }
 
   /**
@@ -131,7 +130,7 @@ class MessageManager extends BaseManager {
       if (existing && !existing.partial) return existing;
     }
 
-    const data = await this.client.api.channels[this.channel.id].messages[messageID].get();
+    const data = await this.client.api.channels(this.channel.id).messages(messageID).get();
     return this.add(data, cache);
   }
 

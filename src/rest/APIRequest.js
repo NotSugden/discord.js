@@ -33,17 +33,20 @@ class APIRequest {
         ? this.client.options.http.api
         : `${this.client.options.http.api}/v${this.client.options.http.version}`;
     const url = API + this.path;
-    let headers = {};
+    let headers = {
+      'User-Agent': UserAgent,
+    };
 
-    if (this.options.auth !== false) headers.Authorization = this.rest.getAuth();
-    if (this.options.reason) headers['X-Audit-Log-Reason'] = encodeURIComponent(this.options.reason);
-    headers['User-Agent'] = UserAgent;
-    if (this.options.headers) headers = Object.assign(headers, this.options.headers);
+    const { options } = this;
+
+    if (options.auth !== false) headers.Authorization = this.rest.getAuth();
+    if (options.reason) headers['X-Audit-Log-Reason'] = encodeURIComponent(options.reason);
+    if (options.headers) headers = Object.assign(headers, options.headers);
 
     let body;
-    if (this.options.files && this.options.files.length) {
+    if (this.options.files?.length) {
       body = new FormData();
-      for (const file of this.options.files) if (file && file.file) body.append(file.name, file.file, file.name);
+      for (const file of this.options.files) if (file?.file) body.append(file.name, file.file, file.name);
       if (typeof this.options.data !== 'undefined') body.append('payload_json', JSON.stringify(this.options.data));
       headers = Object.assign(headers, body.getHeaders());
       // eslint-disable-next-line eqeqeq

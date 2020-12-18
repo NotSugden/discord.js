@@ -200,36 +200,35 @@ class Role extends Base {
     if (typeof data.permissions !== 'undefined') data.permissions = Permissions.resolve(data.permissions);
     else data.permissions = this.permissions.bitfield;
     if (typeof data.position !== 'undefined') {
-      await Util.setPosition(
+      const updatedRoles = await Util.setPosition(
         this,
         data.position,
         false,
         this.guild._sortedRoles(),
         this.client.api.guilds(this.guild.id).roles,
         reason,
-      ).then(updatedRoles => {
-        this.client.actions.GuildRolesPositionUpdate.handle({
-          guild_id: this.guild.id,
-          roles: updatedRoles,
-        });
+      );
+      this.client.actions.GuildRolesPositionUpdate.handle({
+        guild_id: this.guild.id,
+        roles: updatedRoles,
       });
     }
-    return this.client.api.guilds[this.guild.id].roles[this.id]
+    const role = await this.client.api
+      .guilds(this.guild.id)
+      .roles(this.id)
       .patch({
         data: {
           name: data.name || this.name,
           color: data.color !== null ? Util.resolveColor(data.color || this.color) : null,
-          hoist: typeof data.hoist !== 'undefined' ? data.hoist : this.hoist,
+          hoist: data.hoist ?? this.hoist,
           permissions: data.permissions,
-          mentionable: typeof data.mentionable !== 'undefined' ? data.mentionable : this.mentionable,
+          mentionable: data.mentionable ?? this.mentionable,
         },
         reason,
-      })
-      .then(role => {
-        const clone = this._clone();
-        clone._patch(role);
-        return clone;
       });
+    const clone = this._clone();
+    clone._patch(role);
+    return clone;
   }
 
   /**
@@ -337,21 +336,20 @@ class Role extends Base {
    *   .then(updated => console.log(`Role position: ${updated.position}`))
    *   .catch(console.error);
    */
-  setPosition(position, { relative, reason } = {}) {
-    return Util.setPosition(
+  async setPosition(position, { relative, reason } = {}) {
+    const updatedRoles = await Util.setPosition(
       this,
       position,
       relative,
       this.guild._sortedRoles(),
       this.client.api.guilds(this.guild.id).roles,
       reason,
-    ).then(updatedRoles => {
-      this.client.actions.GuildRolesPositionUpdate.handle({
-        guild_id: this.guild.id,
-        roles: updatedRoles,
-      });
-      return this;
+    );
+    this.client.actions.GuildRolesPositionUpdate.handle({
+      guild_id: this.guild.id,
+      roles: updatedRoles,
     });
+    return this;
   }
 
   /**
@@ -364,11 +362,10 @@ class Role extends Base {
    *   .then(deleted => console.log(`Deleted role ${deleted.name}`))
    *   .catch(console.error);
    */
-  delete(reason) {
-    return this.client.api.guilds[this.guild.id].roles[this.id].delete({ reason }).then(() => {
-      this.client.actions.GuildRoleDelete.handle({ guild_id: this.guild.id, role_id: this.id });
-      return this;
-    });
+  async delete(reason) {
+    await this.client.api.guilds(this.guild.id).roles(this.id).delete({ reason });
+    this.client.actions.GuildRoleDelete.handle({ guild_id: this.guild.id, role_id: this.id });
+    return this;
   }
 
   /**

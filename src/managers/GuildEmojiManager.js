@@ -53,18 +53,14 @@ class GuildEmojiManager extends BaseGuildEmojiManager {
       for (let role of roles instanceof Collection ? roles.values() : roles) {
         role = this.guild.roles.resolve(role);
         if (!role) {
-          return Promise.reject(
-            new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true),
-          );
+          throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
         }
         data.roles.push(role.id);
       }
     }
 
-    return this.client.api
-      .guilds(this.guild.id)
-      .emojis.post({ data, reason })
-      .then(emoji => this.client.actions.GuildEmojiCreate.handle(this.guild, emoji).emoji);
+    const emoji = await this.client.api.guilds(this.guild.id).emojis.post({ data, reason });
+    return this.client.actions.GuildEmojiCreate.handle(this.guild, emoji).emoji;
   }
 
   /**

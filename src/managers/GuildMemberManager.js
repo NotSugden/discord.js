@@ -162,7 +162,7 @@ class GuildMemberManager extends BaseManager {
    *    .then(pruned => console.log(`I just pruned ${pruned} people!`))
    *    .catch(console.error);
    */
-  prune({ days = 7, dry = false, count: compute_prune_count = true, roles = [], reason } = {}) {
+  async prune({ days = 7, dry = false, count: compute_prune_count = true, roles = [], reason } = {}) {
     if (typeof days !== 'number') throw new TypeError('PRUNE_DAYS_TYPE');
 
     const query = { days };
@@ -171,7 +171,7 @@ class GuildMemberManager extends BaseManager {
     for (const role of roles) {
       const resolvedRole = this.guild.roles.resolveID(role);
       if (!resolvedRole) {
-        return Promise.reject(new TypeError('INVALID_TYPE', 'roles', 'Array of Roles or Snowflakes', true));
+        throw new TypeError('INVALID_TYPE', 'roles', 'Array of Roles or Snowflakes', true);
       }
       resolvedRoles.push(resolvedRole);
     }
@@ -186,12 +186,11 @@ class GuildMemberManager extends BaseManager {
       return endpoint.get({ query, reason }).then(data => data.pruned);
     }
 
-    return endpoint
-      .post({
-        data: { ...query, compute_prune_count },
-        reason,
-      })
-      .then(data => data.pruned);
+    const { pruned } = await endpoint.post({
+      data: { ...query, compute_prune_count },
+      reason,
+    });
+    return pruned;
   }
 
   /**
@@ -209,23 +208,19 @@ class GuildMemberManager extends BaseManager {
    *   .then(user => console.log(`Banned ${user.username || user.id || user} from ${guild.name}`))
    *   .catch(console.error);
    */
-  ban(user, options = { days: 0 }) {
-    if (typeof options !== 'object') return Promise.reject(new TypeError('INVALID_TYPE', 'options', 'object', true));
+  async ban(user, options = { days: 0 }) {
+    if (typeof options !== 'object') throw new TypeError('INVALID_TYPE', 'options', 'object', true);
     if (options.days) options.delete_message_days = options.days;
     const id = this.client.users.resolveID(user);
-    if (!id) return Promise.reject(new Error('BAN_RESOLVE_ID', true));
-    return this.client.api
-      .guilds(this.guild.id)
-      .bans[id].put({ data: options })
-      .then(() => {
-        if (user instanceof GuildMember) return user;
-        const _user = this.client.users.resolve(id);
-        if (_user) {
-          const member = this.resolve(_user);
-          return member || _user;
-        }
-        return id;
-      });
+    if (!id) throw new Error('BAN_RESOLVE_ID', true);
+    await this.client.api.guilds(this.guild.id).bans(id).put({ data: options });
+    if (user instanceof GuildMember) return user;
+    const _user = this.client.users.resolve(id);
+    if (_user) {
+      const member = this.resolve(_user);
+      return member || _user;
+    }
+    return id;
   }
 
   /**
@@ -239,26 +234,21 @@ class GuildMemberManager extends BaseManager {
    *   .then(user => console.log(`Unbanned ${user.username} from ${guild.name}`))
    *   .catch(console.error);
    */
-  unban(user, reason) {
+  async unban(user, reason) {
     const id = this.client.users.resolveID(user);
-    if (!id) return Promise.reject(new Error('BAN_RESOLVE_ID'));
-    return this.client.api
-      .guilds(this.guild.id)
-      .bans[id].delete({ reason })
-      .then(() => this.client.users.resolve(user));
+    if (!id) throw new Error('BAN_RESOLVE_ID');
+    await this.client.api.guilds(this.guild.id).bans(id).delete({ reason });
+    return this.client.users.resolve(user);
   }
 
-  _fetchSingle({ user, cache, force = false }) {
+  async _fetchSingle({ user, cache, force = false }) {
     if (!force) {
       const existing = this.cache.get(user);
-      if (existing && !existing.partial) return Promise.resolve(existing);
+      if (existing && !existing.partial) return existing;
     }
 
-    return this.client.api
-      .guilds(this.guild.id)
-      .members(user)
-      .get()
-      .then(data => this.add(data, cache));
+    const data = await this.client.api.guilds(this.guild.id).members(user).get();
+    return this.add(data, cache);
   }
 
   _fetchMany({

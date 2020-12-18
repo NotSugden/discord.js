@@ -160,13 +160,13 @@ class GuildManager extends BaseManager {
     } = {},
   ) {
     icon = await DataResolver.resolveImage(icon);
-    if (typeof verificationLevel !== 'undefined' && typeof verificationLevel !== 'number') {
+    if (typeof verificationLevel === 'string') {
       verificationLevel = VerificationLevels.indexOf(verificationLevel);
     }
-    if (typeof defaultMessageNotifications !== 'undefined' && typeof defaultMessageNotifications !== 'number') {
+    if (typeof defaultMessageNotifications === 'string') {
       defaultMessageNotifications = DefaultMessageNotifications.indexOf(defaultMessageNotifications);
     }
-    if (typeof explicitContentFilter !== 'undefined' && typeof explicitContentFilter !== 'number') {
+    if (typeof explicitContentFilter === 'string') {
       explicitContentFilter = ExplicitContentFilterLevels.indexOf(explicitContentFilter);
     }
     for (const channel of channels) {
@@ -185,45 +185,39 @@ class GuildManager extends BaseManager {
       if (role.color) role.color = resolveColor(role.color);
       if (role.permissions) role.permissions = Permissions.resolve(role.permissions);
     }
-    return new Promise((resolve, reject) =>
-      this.client.api.guilds
-        .post({
-          data: {
-            name,
-            region,
-            icon,
-            verification_level: verificationLevel,
-            default_message_notifications: defaultMessageNotifications,
-            explicit_content_filter: explicitContentFilter,
-            roles,
-            channels,
-            afk_channel_id: afkChannelID,
-            afk_timeout: afkTimeout,
-            system_channel_id: systemChannelID,
-          },
-        })
-        .then(data => {
-          if (this.client.guilds.cache.has(data.id)) return resolve(this.client.guilds.cache.get(data.id));
-
-          const handleGuild = guild => {
-            if (guild.id === data.id) {
-              this.client.clearTimeout(timeout);
-              this.client.removeListener(Events.GUILD_CREATE, handleGuild);
-              this.client.decrementMaxListeners();
-              resolve(guild);
-            }
-          };
-          this.client.incrementMaxListeners();
-          this.client.on(Events.GUILD_CREATE, handleGuild);
-
-          const timeout = this.client.setTimeout(() => {
-            this.client.removeListener(Events.GUILD_CREATE, handleGuild);
-            this.client.decrementMaxListeners();
-            resolve(this.client.guilds.add(data));
-          }, 10000);
-          return undefined;
-        }, reject),
-    );
+    const data = await this.client.api.guilds.post({
+      data: {
+        name,
+        region,
+        icon,
+        verification_level: verificationLevel,
+        default_message_notifications: defaultMessageNotifications,
+        explicit_content_filter: explicitContentFilter,
+        roles,
+        channels,
+        afk_channel_id: afkChannelID,
+        afk_timeout: afkTimeout,
+        system_channel_id: systemChannelID,
+      },
+    });
+    if (this.client.guilds.cache.has(data.id)) return this.client.guilds.cache.get(data.id);
+    return new Promise(resolve => {
+      const handleGuild = guild => {
+        if (guild.id === data.id) {
+          this.client.clearTimeout(timeout);
+          this.client.removeListener(Events.GUILD_CREATE, handleGuild);
+          this.client.decrementMaxListeners();
+          resolve(guild);
+        }
+      };
+      this.client.incrementMaxListeners();
+      this.client.on(Events.GUILD_CREATE, handleGuild);
+      const timeout = this.client.setTimeout(() => {
+        this.client.removeListener(Events.GUILD_CREATE, handleGuild);
+        this.client.decrementMaxListeners();
+        resolve(this.client.guilds.add(data));
+      }, 10000);
+    });
   }
 
   /**

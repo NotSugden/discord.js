@@ -161,9 +161,8 @@ class TextBasedChannel {
     }
 
     const { data, files } = await apiMessage.resolveFiles();
-    return this.client.api.channels[this.id].messages
-      .post({ data, files })
-      .then(d => this.client.actions.MessageCreate.handle(d).message);
+    const d = await this.client.api.channels[this.id].messages.post({ data, files });
+    return this.client.actions.MessageCreate.handle(d).message;
   }
 
   /**
@@ -292,7 +291,7 @@ class TextBasedChannel {
     return new Promise((resolve, reject) => {
       const collector = this.createMessageCollector(filter, options);
       collector.once('end', (collection, reason) => {
-        if (options.errors && options.errors.includes(reason)) {
+        if (options.errors?.includes(reason)) {
           reject(collection);
         } else {
           resolve(collection);
@@ -330,7 +329,7 @@ class TextBasedChannel {
         );
         return message ? new Collection([[message.id, message]]) : new Collection();
       }
-      await this.client.api.channels[this.id].messages['bulk-delete'].post({ data: { messages: messageIDs } });
+      await this.client.api.channels(this.id).messages['bulk-delete'].post({ data: { messages: messageIDs } });
       return messageIDs.reduce(
         (col, id) =>
           col.set(

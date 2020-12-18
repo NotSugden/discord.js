@@ -138,7 +138,7 @@ class VoiceChannel extends GuildChannel {
    */
   leave() {
     const connection = this.client.voice.connections.get(this.guild.id);
-    if (connection && connection.channel.id === this.id) connection.disconnect();
+    if (connection?.channel.id === this.id) connection.disconnect();
   }
 }
 

@@ -246,12 +246,10 @@ class Client extends BaseClient {
    *   .then(invite => console.log(`Obtained invite with code: ${invite.code}`))
    *   .catch(console.error);
    */
-  fetchInvite(invite) {
+  async fetchInvite(invite) {
     const code = DataResolver.resolveInviteCode(invite);
-    return this.api
-      .invites(code)
-      .get({ query: { with_counts: true } })
-      .then(data => new Invite(this, data));
+    const data = await this.api.invites(code).get({ query: { with_counts: true } });
+    return new Invite(this, data);
   }
 
   /**
@@ -263,12 +261,10 @@ class Client extends BaseClient {
    *   .then(template => console.log(`Obtained template with code: ${template.code}`))
    *   .catch(console.error);
    */
-  fetchGuildTemplate(template) {
+  async fetchGuildTemplate(template) {
     const code = DataResolver.resolveGuildTemplateCode(template);
-    return this.api.guilds
-      .templates(code)
-      .get()
-      .then(data => new GuildTemplate(this, data));
+    const data = await this.api.guilds.templates(code).get();
+    return new GuildTemplate(this, data);
   }
 
   /**
@@ -281,11 +277,9 @@ class Client extends BaseClient {
    *   .then(webhook => console.log(`Obtained webhook with name: ${webhook.name}`))
    *   .catch(console.error);
    */
-  fetchWebhook(id, token) {
-    return this.api
-      .webhooks(id, token)
-      .get()
-      .then(data => new Webhook(this, data));
+  async fetchWebhook(id, token) {
+    const data = await this.api.webhooks(id, token).get();
+    return new Webhook(this, data);
   }
 
   /**
@@ -296,12 +290,11 @@ class Client extends BaseClient {
    *   .then(regions => console.log(`Available regions are: ${regions.map(region => region.name).join(', ')}`))
    *   .catch(console.error);
    */
-  fetchVoiceRegions() {
-    return this.api.voice.regions.get().then(res => {
-      const regions = new Collection();
-      for (const region of res) regions.set(region.id, new VoiceRegion(region));
-      return regions;
-    });
+  async fetchVoiceRegions() {
+    const data = await this.api.voice.regions.get();
+    const regions = new Collection();
+    for (const region of data) regions.set(region.id, new VoiceRegion(region));
+    return regions;
   }
 
   /**
@@ -350,11 +343,9 @@ class Client extends BaseClient {
    * Obtains the OAuth Application of this bot from Discord.
    * @returns {Promise<ClientApplication>}
    */
-  fetchApplication() {
-    return this.api.oauth2
-      .applications('@me')
-      .get()
-      .then(app => new ClientApplication(this, app));
+  async fetchApplication() {
+    const data = await this.api.oauth2.applications('@me').get();
+    return new ClientApplication(this, data);
   }
 
   /**
@@ -362,13 +353,11 @@ class Client extends BaseClient {
    * @param {GuildResolvable} guild The guild to fetch the preview for
    * @returns {Promise<GuildPreview>}
    */
-  fetchGuildPreview(guild) {
+  async fetchGuildPreview(guild) {
     const id = this.guilds.resolveID(guild);
     if (!id) throw new TypeError('INVALID_TYPE', 'guild', 'GuildResolvable');
-    return this.api
-      .guilds(id)
-      .preview.get()
-      .then(data => new GuildPreview(this, data));
+    const data = await this.api.guilds(id).preview.get();
+    return new GuildPreview(this, data);
   }
 
   /**

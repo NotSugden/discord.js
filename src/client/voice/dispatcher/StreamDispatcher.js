@@ -85,10 +85,10 @@ class StreamDispatcher extends Writable {
     };
 
     this.on('error', () => streamError());
-    if (this.streams.input) this.streams.input.on('error', err => streamError('input', err));
-    if (this.streams.ffmpeg) this.streams.ffmpeg.on('error', err => streamError('ffmpeg', err));
-    if (this.streams.opus) this.streams.opus.on('error', err => streamError('opus', err));
-    if (this.streams.volume) this.streams.volume.on('error', err => streamError('volume', err));
+    this.streams.input?.on('error', err => streamError('input', err));
+    this.streams.ffmpeg?.on('error', err => streamError('ffmpeg', err));
+    this.streams.opus?.on('error', err => streamError('opus', err));
+    this.streams.volume?.on('error', err => streamError('volume', err));
   }
 
   get _sdata() {
@@ -115,10 +115,9 @@ class StreamDispatcher extends Writable {
 
   _cleanup() {
     if (this.player.dispatcher === this) this.player.dispatcher = null;
-    const { streams } = this;
-    if (streams.broadcast) streams.broadcast.delete(this);
-    if (streams.opus) streams.opus.destroy();
-    if (streams.ffmpeg) streams.ffmpeg.destroy();
+    this.streams.broadcast?.delete(this);
+    this.streams.opus?.destroy();
+    this.streams.ffmpeg?.destroy();
   }
 
   /**
@@ -127,7 +126,7 @@ class StreamDispatcher extends Writable {
    */
   pause(silence = false) {
     if (this.paused) return;
-    if (this.streams.opus) this.streams.opus.unpipe(this);
+    this.streams.opus?.unpipe(this);
     if (silence) {
       this.streams.silence.pipe(this);
       this._silence = true;
@@ -161,7 +160,7 @@ class StreamDispatcher extends Writable {
   resume() {
     if (!this.pausedSince) return;
     this.streams.silence.unpipe(this);
-    if (this.streams.opus) this.streams.opus.pipe(this);
+    this.streams.opus?.pipe(this);
     if (this._silence) {
       this._silentPausedTime += Date.now() - this.pausedSince;
       this._silence = false;
@@ -169,7 +168,7 @@ class StreamDispatcher extends Writable {
       this._pausedTime += Date.now() - this.pausedSince;
     }
     this.pausedSince = null;
-    if (typeof this._writeCallback === 'function') this._writeCallback();
+    this._writeCallback?.();
   }
 
   /**
@@ -233,7 +232,7 @@ class StreamDispatcher extends Writable {
     if (!this.streams.broadcast) {
       const next = FRAME_LENGTH + this.count * FRAME_LENGTH - (Date.now() - this.startTime - this._pausedTime);
       setTimeout(() => {
-        if ((!this.pausedSince || this._silence) && this._writeCallback) this._writeCallback();
+        if (!this.pausedSince || this._silence) this._writeCallback?.();
       }, next);
     }
     this._sdata.sequence++;

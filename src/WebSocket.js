@@ -22,8 +22,7 @@ exports.unpack = (data, type) => {
     }
     return JSON.parse(data);
   }
-  if (!Buffer.isBuffer(data)) data = Buffer.from(new Uint8Array(data));
-  return erlpack.unpack(data);
+  return erlpack.unpack(Buffer.isBuffer(data) ? data : Buffer.from(new Uint8Array(data)));
 };
 
 exports.create = (gateway, query = {}, ...args) => {

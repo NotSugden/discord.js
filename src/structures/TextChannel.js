@@ -105,12 +105,11 @@ class TextChannel extends GuildChannel {
    *   .then(hooks => console.log(`This channel has ${hooks.size} hooks`))
    *   .catch(console.error);
    */
-  fetchWebhooks() {
-    return this.client.api.channels[this.id].webhooks.get().then(data => {
-      const hooks = new Collection();
-      for (const hook of data) hooks.set(hook.id, new Webhook(this.client, hook));
-      return hooks;
-    });
+  async fetchWebhooks() {
+    const data = await this.client.api.channels[this.id].webhooks.get();
+    const hooks = new Collection();
+    for (const hook of data) hooks.set(hook.id, new Webhook(this.client, hook));
+    return hooks;
   }
 
   /**
@@ -133,15 +132,14 @@ class TextChannel extends GuildChannel {
     if (typeof avatar === 'string' && !avatar.startsWith('data:')) {
       avatar = await DataResolver.resolveImage(avatar);
     }
-    return this.client.api.channels[this.id].webhooks
-      .post({
-        data: {
-          name,
-          avatar,
-        },
-        reason,
-      })
-      .then(data => new Webhook(this.client, data));
+    const data = await this.client.api.channels(this.id).webhooks.post({
+      data: {
+        name,
+        avatar,
+      },
+      reason,
+    });
+    return new Webhook(this.client, data);
   }
 
   // These are here only for documentation purposes - they are implemented by TextBasedChannel

@@ -43,19 +43,21 @@ class MessageCollector extends Collector {
     this._handleGuildDeletion = this._handleGuildDeletion.bind(this);
 
     this.client.incrementMaxListeners();
-    this.client.on(Events.MESSAGE_CREATE, this.handleCollect);
-    this.client.on(Events.MESSAGE_DELETE, this.handleDispose);
-    this.client.on(Events.MESSAGE_BULK_DELETE, bulkDeleteListener);
-    this.client.on(Events.CHANNEL_DELETE, this._handleChannelDeletion);
-    this.client.on(Events.GUILD_DELETE, this._handleGuildDeletion);
+    this.client
+      .on(Events.MESSAGE_CREATE, this.handleCollect)
+      .on(Events.MESSAGE_DELETE, this.handleDispose)
+      .on(Events.MESSAGE_BULK_DELETE, bulkDeleteListener)
+      .on(Events.CHANNEL_DELETE, this._handleChannelDeletion)
+      .on(Events.GUILD_DELETE, this._handleGuildDeletion);
 
     this.once('end', () => {
-      this.client.removeListener(Events.MESSAGE_CREATE, this.handleCollect);
-      this.client.removeListener(Events.MESSAGE_DELETE, this.handleDispose);
-      this.client.removeListener(Events.MESSAGE_BULK_DELETE, bulkDeleteListener);
-      this.client.removeListener(Events.CHANNEL_DELETE, this._handleChannelDeletion);
-      this.client.removeListener(Events.GUILD_DELETE, this._handleGuildDeletion);
-      this.client.decrementMaxListeners();
+      this.client
+        .removeListener(Events.MESSAGE_CREATE, this.handleCollect)
+        .removeListener(Events.MESSAGE_DELETE, this.handleDispose)
+        .removeListener(Events.MESSAGE_BULK_DELETE, bulkDeleteListener)
+        .removeListener(Events.CHANNEL_DELETE, this._handleChannelDeletion)
+        .removeListener(Events.GUILD_DELETE, this._handleGuildDeletion)
+        .decrementMaxListeners();
     });
   }
 
@@ -120,7 +122,7 @@ class MessageCollector extends Collector {
    * @returns {void}
    */
   _handleGuildDeletion(guild) {
-    if (this.channel.guild && guild.id === this.channel.guild.id) {
+    if (guild.id === this.channel.guild?.id) {
       this.stop('guildDelete');
     }
   }

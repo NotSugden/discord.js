@@ -409,21 +409,18 @@ class VoiceConnection extends EventEmitter {
       if (this.sockets.udp) throw new Error('UDP_CONNECTION_EXISTS');
     }
 
-    if (this.sockets.ws) this.sockets.ws.shutdown();
-    if (this.sockets.udp) this.sockets.udp.shutdown();
+    this.sockets.ws?.shutdown();
+    this.sockets.udp?.shutdown();
 
-    this.sockets.ws = new VoiceWebSocket(this);
-    this.sockets.udp = new VoiceUDP(this);
-
-    const { ws, udp } = this.sockets;
-
-    ws.on('debug', msg => this.emit('debug', msg));
-    udp.on('debug', msg => this.emit('debug', msg));
-    ws.on('error', err => this.emit('error', err));
-    udp.on('error', err => this.emit('error', err));
-    ws.on('ready', this.onReady.bind(this));
-    ws.on('sessionDescription', this.onSessionDescription.bind(this));
-    ws.on('startSpeaking', this.onStartSpeaking.bind(this));
+    this.sockets.ws = new VoiceWebSocket(this)
+      .on('debug', msg => this.emit('debug', msg))
+      .on('error', err => this.emit('error', err))
+      .on('ready', this.onReady.bind(this))
+      .on('sessionDescription', this.onSessionDescription.bind(this))
+      .on('startSpeaking', this.onStartSpeaking.bind(this));
+    this.sockets.udp = new VoiceUDP(this)
+      .on('debug', msg => this.emit('debug', msg))
+      .on('error', err => this.emit('error', err));
 
     this.sockets.ws.connect();
   }

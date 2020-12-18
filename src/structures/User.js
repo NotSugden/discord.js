@@ -135,7 +135,7 @@ class User extends Base {
    */
   get lastMessage() {
     const channel = this.client.channels.cache.get(this.lastMessageChannelID);
-    return (channel && channel.messages.cache.get(this.lastMessageID)) || null;
+    return channel?.messages.cache.get(this.lastMessageID) || null;
   }
 
   /**

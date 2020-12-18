@@ -29,7 +29,7 @@ class ClientUser extends Structures.get('User') {
        * If the bot's {@link ClientApplication#owner Owner} has MFA enabled on their account
        * @type {?boolean}
        */
-      this.mfaEnabled = typeof data.mfa_enabled === 'boolean' ? data.mfa_enabled : null;
+      this.mfaEnabled = data.mfa_enabled ?? null;
     } else if (typeof this.mfaEnabled === 'undefined') {
       this.mfaEnabled = null;
     }
@@ -56,8 +56,7 @@ class ClientUser extends Structures.get('User') {
     const newData = await this.client.api.users('@me').patch({ data });
     this.client.token = newData.token;
     const { updated } = this.client.actions.UserUpdate.handle(newData);
-    if (updated) return updated;
-    return this;
+    return updated ?? this;
   }
 
   /**

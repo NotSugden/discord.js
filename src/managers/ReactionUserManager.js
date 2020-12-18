@@ -34,9 +34,11 @@ class ReactionUserManager extends BaseManager {
    */
   async fetch({ limit = 100, after, before } = {}) {
     const message = this.reaction.message;
-    const data = await this.client.api.channels[message.channel.id].messages[message.id].reactions[
-      this.reaction.emoji.identifier
-    ].get({ query: { limit, before, after } });
+    const data = await this.client.api
+      .channels(message.channel.id)
+      .messages(message.id)
+      .reactions(this.reaction.emoji.identifier)
+      .get({ query: { limit, before, after } });
     const users = new Collection();
     for (const rawUser of data) {
       const user = this.client.users.add(rawUser);
@@ -51,15 +53,15 @@ class ReactionUserManager extends BaseManager {
    * @param {UserResolvable} [user=this.client.user] The user to remove the reaction of
    * @returns {Promise<MessageReaction>}
    */
-  remove(user = this.client.user) {
+  async remove(user = this.client.user) {
     const userID = this.client.users.resolveID(user);
-    if (!userID) return Promise.reject(new Error('REACTION_RESOLVE_USER'));
+    if (!userID) throw new Error('REACTION_RESOLVE_USER');
     const message = this.reaction.message;
-    return this.client.api.channels[message.channel.id].messages[message.id].reactions[this.reaction.emoji.identifier][
-      userID === this.client.user.id ? '@me' : userID
-    ]
-      .delete()
-      .then(() => this.reaction);
+    await this.client.api
+      .channels(message.channel.id)
+      .messages(message.id)
+      .reactions(this.reaction.emoji.identifier, userID === this.client.user.id ? '@me' : userID);
+    return this.reaction;
   }
 }
 

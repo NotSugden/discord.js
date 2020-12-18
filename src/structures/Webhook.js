@@ -157,9 +157,8 @@ class Webhook {
         auth: false,
       })
       .then(d => {
-        const channel = this.client.channels ? this.client.channels.cache.get(d.channel_id) : undefined;
-        if (!channel) return d;
-        return channel.messages.add(d, false);
+        const channel = this.client.channels?.cache.get(d.channel_id);
+        return channel ? channel.messages.add(d, false) : d;
       });
   }
 
@@ -180,15 +179,13 @@ class Webhook {
    *   }]
    * }).catch(console.error);
    */
-  sendSlackMessage(body) {
-    return this.client.api
-      .webhooks(this.id, this.token)
-      .slack.post({
-        query: { wait: true },
-        auth: false,
-        data: body,
-      })
-      .then(data => data.toString() === 'ok');
+  async sendSlackMessage(body) {
+    const data = await this.client.api.webhooks(this.id, this.token).slack.post({
+      query: { wait: true },
+      auth: false,
+      data: body,
+    });
+    return data.toString() === 'ok';
   }
 
   /**

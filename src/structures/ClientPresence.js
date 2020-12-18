@@ -28,12 +28,46 @@ class ClientPresence extends Presence {
     return this;
   }
 
-  _parse({ status, since, afk, activities }) {
-    const data = {
-      activities: [],
-      afk: typeof afk === 'boolean' ? afk : false,
-      since: typeof since === 'number' && !Number.isNaN(since) ? since : null,
+  async _parse({ status, since, afk, activity }) {
+    const applicationID = activity && (activity.application ? activity.application.id ?? activity.application : null);
+    let assets = new Collection();
+    if (activity) {
+      if (typeof activity.name !== 'string') throw new TypeError('INVALID_TYPE', 'name', 'string');
+      if (!activity.type) activity.type = 0;
+      if (activity.assets && applicationID) {
+        try {
+          const a = await this.client.api.oauth2.applications(applicationID).assets.get();
+          for (const asset of a) assets.set(asset.name, asset.id);
+        } catch {} // eslint-disable-line no-empty
+      }
+    }
+
+    const packet = {
+      afk: afk ?? false,
+      since: since ?? null,
       status: status || this.status,
+      game: activity
+        ? {
+            type: activity.type,
+            name: activity.name,
+            url: activity.url,
+            details: activity.details,
+            state: activity.state,
+            assets: activity.assets
+              ? {
+                  large_text: activity.assets.largeText,
+                  small_text: activity.assets.smallText,
+                  large_image: assets.get(activity.assets.largeImage) || activity.assets.largeImage,
+                  small_image: assets.get(activity.assets.smallImage) || activity.assets.smallImage,
+                }
+              : undefined,
+            timestamps: activity.timestamps,
+            party: activity.party,
+            application_id: applicationID,
+            secrets: activity.secrets,
+            instance: activity.instance,
+          }
+        : null,
     };
     if (activities === null) {
       data.activities = null;

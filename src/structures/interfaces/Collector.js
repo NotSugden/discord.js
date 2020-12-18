@@ -147,8 +147,7 @@ class Collector extends EventEmitter {
       }
 
       const cleanup = () => {
-        this.removeListener('collect', onCollect);
-        this.removeListener('end', onEnd);
+        this.removeListener('collect', onCollect).removeListener('end', onEnd);
       };
 
       const onCollect = item => {
@@ -161,8 +160,7 @@ class Collector extends EventEmitter {
         reject(this.collected); // eslint-disable-line prefer-promise-reject-errors
       };
 
-      this.on('collect', onCollect);
-      this.on('end', onEnd);
+      this.on('collect', onCollect).on('end', onEnd);
     });
   }
 
@@ -235,12 +233,10 @@ class Collector extends EventEmitter {
           // eslint-disable-next-line no-await-in-loop
           await new Promise(resolve => {
             const tick = () => {
-              this.removeListener('collect', tick);
-              this.removeListener('end', tick);
-              return resolve();
+              this.removeListener('collect', tick).removeListener('end', tick);
+              resolve();
             };
-            this.on('collect', tick);
-            this.on('end', tick);
+            this.on('collect', tick).on('end', tick);
           });
         }
       }

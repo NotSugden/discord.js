@@ -37,9 +37,12 @@ class ClientApplication extends Application {
 
     /**
      * The owner of this OAuth application
+     * @name ClientApplication#owner
      * @type {?User|Team}
      */
-    this.owner = data.team ? new Team(this.client, data.team) : data.owner ? this.client.users.add(data.owner) : null;
+    if (data.team) this.owner = new Team(this.client, data.team);
+    else if (data.owner) this.owner = this.client.users.add(data.owner);
+    else this.owner = null;
   }
 }
 

@@ -142,36 +142,29 @@ class GuildTemplate extends Base {
    * @param {string} [options.description] The description of this template
    * @returns {Promise<GuildTemplate>}
    */
-  edit({ name, description } = {}) {
-    return this.client.api
-      .guilds(this.guildID)
-      .templates(this.code)
-      .patch({ data: { name, description } })
-      .then(data => this._patch(data));
+  async edit({ name, description } = {}) {
+    const data = await this.client.api.guilds(this.guildID).templates(this.code).patch({ data: { name, description } });
+    this._patch(data);
+    return this;
   }
 
   /**
    * Deletes this template.
    * @returns {Promise<GuildTemplate>}
    */
-  delete() {
-    return this.client.api
-      .guilds(this.guildID)
-      .templates(this.code)
-      .delete()
-      .then(() => this);
+  async delete() {
+    await this.client.api.guilds(this.guildID).templates(this.code).delete();
+    return this;
   }
 
   /**
    * Syncs this template to the current state of the guild.
    * @returns {Promise<GuildTemplate>}
    */
-  sync() {
-    return this.client.api
-      .guilds(this.guildID)
-      .templates(this.code)
-      .put()
-      .then(data => this._patch(data));
+  async sync() {
+    const data = await this.client.api.guilds(this.guildID).templates(this.code).put();
+    this._patch(data);
+    return this;
   }
 
   /**

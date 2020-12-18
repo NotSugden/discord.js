@@ -158,8 +158,9 @@ class Invite extends Base {
    * @param {string} [reason] Reason for deleting this invite
    * @returns {Promise<Invite>}
    */
-  delete(reason) {
-    return this.client.api.invites[this.code].delete({ reason }).then(() => this);
+  async delete(reason) {
+    await this.client.api.invites(this.code).delete({ reason });
+    return this;
   }
 
   /**

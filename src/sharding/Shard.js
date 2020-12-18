@@ -138,9 +138,9 @@ class Shard extends EventEmitter {
     await new Promise((resolve, reject) => {
       const cleanup = () => {
         clearTimeout(spawnTimeoutTimer);
-        this.off('ready', onReady);
-        this.off('disconnect', onDisconnect);
-        this.off('death', onDeath);
+        this.removeListener('ready', onReady)
+          .removeListener('disconnect', onDisconnect)
+          .removeListener('death', onDeath);
       };
 
       const onReady = () => {
@@ -164,9 +164,7 @@ class Shard extends EventEmitter {
       };
 
       const spawnTimeoutTimer = setTimeout(onTimeout, spawnTimeout);
-      this.once('ready', onReady);
-      this.once('disconnect', onDisconnect);
-      this.once('death', onDeath);
+      this.once('ready', onReady).once('disconnect', onDisconnect).once('death', onDeath);
     });
     return this.process || this.worker;
   }
@@ -175,11 +173,10 @@ class Shard extends EventEmitter {
    * Immediately kills the shard's process/worker and does not restart it.
    */
   kill() {
+    (this.process ?? this.worker).removeListener('exit', this._exitListener);
     if (this.process) {
-      this.process.removeListener('exit', this._exitListener);
       this.process.kill();
     } else {
-      this.worker.removeListener('exit', this._exitListener);
       this.worker.terminate();
     }
 

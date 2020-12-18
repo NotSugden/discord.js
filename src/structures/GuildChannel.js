@@ -229,7 +229,7 @@ class GuildChannel extends Channel {
    */
   async updateOverwrite(userOrRole, options, reason) {
     userOrRole = this.guild.roles.resolve(userOrRole) || this.client.users.resolve(userOrRole);
-    if (!userOrRole) return Promise.reject(new TypeError('INVALID_TYPE', 'parameter', 'User nor a Role'));
+    if (!userOrRole) throw new TypeError('INVALID_TYPE', 'parameter', 'User nor a Role');
 
     const existing = this.permissionOverwrites.get(userOrRole.id);
     if (existing) {
@@ -254,14 +254,14 @@ class GuildChannel extends Channel {
    *   .then(channel => console.log(channel.permissionOverwrites.get(message.author.id)))
    *   .catch(console.error);
    */
-  createOverwrite(userOrRole, options, reason) {
+  async createOverwrite(userOrRole, options, reason) {
     userOrRole = this.guild.roles.resolve(userOrRole) || this.client.users.resolve(userOrRole);
     if (!userOrRole) return Promise.reject(new TypeError('INVALID_TYPE', 'parameter', 'User nor a Role'));
 
     const type = userOrRole instanceof Role ? OverwriteTypes.role : OverwriteTypes.member;
     const { allow, deny } = PermissionOverwrites.resolveOverwriteOptions(options);
 
-    return this.client.api
+    await this.client.api
       .channels(this.id)
       .permissions(userOrRole.id)
       .put({
@@ -273,7 +273,7 @@ class GuildChannel extends Channel {
         },
         reason,
       })
-      .then(() => this);
+    return this;
   }
 
   /**
@@ -332,18 +332,17 @@ class GuildChannel extends Channel {
    */
   async edit(data, reason) {
     if (typeof data.position !== 'undefined') {
-      await Util.setPosition(
+      const updatedChannels = await Util.setPosition(
         this,
         data.position,
         false,
         this.guild._sortedChannels(this),
         this.client.api.guilds(this.guild.id).channels,
         reason,
-      ).then(updatedChannels => {
-        this.client.actions.GuildChannelsPositionUpdate.handle({
-          guild_id: this.guild.id,
-          channels: updatedChannels,
-        });
+      );
+      this.client.actions.GuildChannelsPositionUpdate.handle({
+        guild_id: this.guild.id,
+        channels: updatedChannels,
       });
     }
 
@@ -450,21 +449,20 @@ class GuildChannel extends Channel {
    *   .then(newChannel => console.log(`Channel's new position is ${newChannel.position}`))
    *   .catch(console.error);
    */
-  setPosition(position, { relative, reason } = {}) {
-    return Util.setPosition(
+  async setPosition(position, { relative, reason } = {}) {
+    const updatedChannels = await Util.setPosition(
       this,
       position,
       relative,
       this.guild._sortedChannels(this),
       this.client.api.guilds(this.guild.id).channels,
       reason,
-    ).then(updatedChannels => {
-      this.client.actions.GuildChannelsPositionUpdate.handle({
-        guild_id: this.guild.id,
-        channels: updatedChannels,
-      });
-      return this;
+    );
+    this.client.actions.GuildChannelsPositionUpdate.handle({
+      guild_id: this.guild.id,
+      channels: updatedChannels,
     });
+    return this;
   }
 
   /**
@@ -483,19 +481,17 @@ class GuildChannel extends Channel {
    *   .then(invite => console.log(`Created an invite with a code of ${invite.code}`))
    *   .catch(console.error);
    */
-  createInvite({ temporary = false, maxAge = 86400, maxUses = 0, unique, reason } = {}) {
-    return this.client.api
-      .channels(this.id)
-      .invites.post({
-        data: {
-          temporary,
-          max_age: maxAge,
-          max_uses: maxUses,
-          unique,
-        },
-        reason,
-      })
-      .then(invite => new Invite(this.client, invite));
+  async createInvite({ temporary = false, maxAge = 86400, maxUses = 0, unique, reason } = {}) {
+    const data = await this.client.api.channels(this.id).invites.post({
+      data: {
+        temporary,
+        max_age: maxAge,
+        max_uses: maxUses,
+        unique,
+      },
+      reason,
+    });
+    return new Invite(this.client, data);
   }
 
   /**
@@ -624,11 +620,9 @@ class GuildChannel extends Channel {
    *   .then(console.log)
    *   .catch(console.error);
    */
-  delete(reason) {
-    return this.client.api
-      .channels(this.id)
-      .delete({ reason })
-      .then(() => this);
+  async delete(reason) {
+    await this.client.api.channels(this.id).delete({ reason });
+    return this;
   }
 }
 

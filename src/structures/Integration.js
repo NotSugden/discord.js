@@ -90,7 +90,7 @@ class Integration extends Base {
    */
   get roles() {
     const roles = this.guild.roles.cache;
-    return roles.filter(role => role.tags && role.tags.integrationID === this.id);
+    return roles.filter(role => role.tags?.integrationID === this.id);
   }
 
   _patch(data) {
@@ -125,17 +125,12 @@ class Integration extends Base {
    * Sync this integration
    * @returns {Promise<Integration>}
    */
-  sync() {
+  async sync() {
     this.syncing = true;
-    return this.client.api
-      .guilds(this.guild.id)
-      .integrations(this.id)
-      .post()
-      .then(() => {
-        this.syncing = false;
-        this.syncedAt = Date.now();
-        return this;
-      });
+    await this.client.api.guilds(this.guild.id).integrations(this.id).post();
+    this.syncing = false;
+    this.syncedAt = Date.now();
+    return this;
   }
 
   /**
@@ -151,7 +146,7 @@ class Integration extends Base {
    * @param {string} reason Reason for editing this integration
    * @returns {Promise<Integration>}
    */
-  edit(data, reason) {
+  async edit(data, reason) {
     if ('expireBehavior' in data) {
       data.expire_behavior = data.expireBehavior;
       data.expireBehavior = null;
@@ -161,14 +156,9 @@ class Integration extends Base {
       data.expireGracePeriod = null;
     }
     // The option enable_emoticons is only available for Twitch at this moment
-    return this.client.api
-      .guilds(this.guild.id)
-      .integrations(this.id)
-      .patch({ data, reason })
-      .then(() => {
-        this._patch(data);
-        return this;
-      });
+    await this.client.api.guilds(this.guild.id).integrations(this.id).patch({ data, reason });
+    this._patch(data);
+    return this;
   }
 
   /**
@@ -176,12 +166,9 @@ class Integration extends Base {
    * @returns {Promise<Integration>}
    * @param {string} [reason] Reason for deleting this integration
    */
-  delete(reason) {
-    return this.client.api
-      .guilds(this.guild.id)
-      .integrations(this.id)
-      .delete({ reason })
-      .then(() => this);
+  async delete(reason) {
+    await this.client.api.guilds(this.guild.id).integrations(this.id).delete({ reason });
+    return this;
   }
 
   toJSON() {

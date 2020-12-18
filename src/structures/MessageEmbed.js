@@ -450,11 +450,7 @@ class MessageEmbed {
     return fields
       .flat(2)
       .map(field =>
-        this.normalizeField(
-          field && field.name,
-          field && field.value,
-          field && typeof field.inline === 'boolean' ? field.inline : false,
-        ),
+        this.normalizeField(field?.name, field?.value, typeof field?.inline === 'boolean' ? field.inline : false),
       );
   }
 }

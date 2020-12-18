@@ -150,7 +150,7 @@ class Message extends Base {
      * @type {ReactionManager}
      */
     this.reactions = new ReactionManager(this);
-    if (data.reactions && data.reactions.length > 0) {
+    if (data.reactions?.length > 0) {
       for (const reaction of data.reactions) {
         this.reactions.add(reaction);
       }
@@ -365,7 +365,7 @@ class Message extends Base {
     return new Promise((resolve, reject) => {
       const collector = this.createReactionCollector(filter, options);
       collector.once('end', (reactions, reason) => {
-        if (options.errors && options.errors.includes(reason)) reject(reactions);
+        if (options.errors?.includes(reason)) reject(reactions);
         else resolve(reactions);
       });
     });
@@ -455,14 +455,13 @@ class Message extends Base {
    *   .then(msg => console.log(`Updated the content of a message to ${msg.content}`))
    *   .catch(console.error);
    */
-  edit(content, options) {
+  async edit(content, options) {
     const { data } =
       content instanceof APIMessage ? content.resolveData() : APIMessage.create(this, content, options).resolveData();
-    return this.client.api.channels[this.channel.id].messages[this.id].patch({ data }).then(d => {
-      const clone = this._clone();
-      clone._patch(d);
-      return clone;
-    });
+    const d = await this.client.api.channels(this.channel.id).messages(this.id).patch({ data });
+    const clone = this._clone();
+    clone._patch(d);
+    return clone;
   }
 
   /**
@@ -492,12 +491,9 @@ class Message extends Base {
    *   .then(console.log)
    *   .catch(console.error)
    */
-  pin(options) {
-    return this.client.api
-      .channels(this.channel.id)
-      .pins(this.id)
-      .put(options)
-      .then(() => this);
+  async pin(options) {
+    await this.client.api.channels(this.channel.id).pins(this.id).put(options);
+    return this;
   }
 
   /**
@@ -511,12 +507,9 @@ class Message extends Base {
    *   .then(console.log)
    *   .catch(console.error)
    */
-  unpin(options) {
-    return this.client.api
-      .channels(this.channel.id)
-      .pins(this.id)
-      .delete(options)
-      .then(() => this);
+  async unpin(options) {
+    await this.client.api.channels(this.channel.id).pins(this.id).delete(options);
+    return this;
   }
 
   /**
@@ -534,24 +527,17 @@ class Message extends Base {
    *   .then(console.log)
    *   .catch(console.error);
    */
-  react(emoji) {
+  async react(emoji) {
     emoji = this.client.emojis.resolveIdentifier(emoji);
     if (!emoji) throw new TypeError('EMOJI_TYPE');
 
-    return this.client.api
-      .channels(this.channel.id)
-      .messages(this.id)
-      .reactions(emoji, '@me')
-      .put()
-      .then(
-        () =>
-          this.client.actions.MessageReactionAdd.handle({
-            user: this.client.user,
-            channel: this.channel,
-            message: this,
-            emoji: Util.parseEmoji(emoji),
-          }).reaction,
-      );
+    await this.client.api.channels(this.channel.id).messages(this.id).reactions(emoji)['@me'].put();
+    return this.client.actions.MessageReactionAdd.handle({
+      user: this.client.user,
+      channel: this.channel,
+      message: this,
+      emoji: Util.parseEmoji(emoji),
+    }).reaction;
   }
 
   /**

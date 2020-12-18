@@ -210,11 +210,11 @@ class WebSocketShard extends EventEmitter {
         reject();
       };
 
-      this.once(ShardEvents.READY, onReady);
-      this.once(ShardEvents.RESUMED, onResumed);
-      this.once(ShardEvents.CLOSE, onClose);
-      this.once(ShardEvents.INVALID_SESSION, onInvalidOrDestroyed);
-      this.once(ShardEvents.DESTROYED, onInvalidOrDestroyed);
+      this.once(ShardEvents.READY, onReady)
+        .once(ShardEvents.RESUMED, onResumed)
+        .once(ShardEvents.CLOSE, onClose)
+        .once(ShardEvents.INVALID_SESSION, onInvalidOrDestroyed)
+        .once(ShardEvents.DESTROYED, onInvalidOrDestroyed);
 
       if (this.connection && this.connection.readyState === WebSocket.OPEN) {
         this.debug('An open connection was found, attempting an immediate identify.');

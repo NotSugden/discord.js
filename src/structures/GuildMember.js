@@ -121,7 +121,7 @@ class GuildMember extends Base {
    */
   get lastMessage() {
     const channel = this.guild.channels.cache.get(this.lastMessageChannelID);
-    return (channel && channel.messages.cache.get(this.lastMessageID)) || null;
+    return channel?.messages.cache.get(this.lastMessageID) || null;
   }
 
   /**
@@ -179,7 +179,7 @@ class GuildMember extends Base {
    */
   get displayColor() {
     const role = this.roles.color;
-    return (role && role.color) || 0;
+    return role?.color || 0;
   }
 
   /**
@@ -189,7 +189,7 @@ class GuildMember extends Base {
    */
   get displayHexColor() {
     const role = this.roles.color;
-    return (role && role.hexColor) || '#000000';
+    return role?.hexColor || '#000000';
   }
 
   /**
@@ -341,12 +341,9 @@ class GuildMember extends Base {
    * @param {string} [reason] Reason for kicking user
    * @returns {Promise<GuildMember>}
    */
-  kick(reason) {
-    return this.client.api
-      .guilds(this.guild.id)
-      .members(this.user.id)
-      .delete({ reason })
-      .then(() => this);
+  async kick(reason) {
+    await this.client.api.guilds(this.guild.id).members(this.user.id).delete({ reason });
+    return this;
   }
 
   /**

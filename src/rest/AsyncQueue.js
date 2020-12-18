@@ -88,7 +88,7 @@ class AsyncQueue {
    */
   shift() {
     const deferred = this.promises.shift();
-    if (typeof deferred !== 'undefined') deferred.resolve();
+    deferred?.resolve();
   }
 }
 

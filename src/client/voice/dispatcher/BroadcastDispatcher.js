@@ -24,8 +24,8 @@ class BroadcastDispatcher extends StreamDispatcher {
   _destroy(err, cb) {
     if (this.player.dispatcher === this) this.player.dispatcher = null;
     const { streams } = this;
-    if (streams.opus) streams.opus.unpipe(this);
-    if (streams.ffmpeg) streams.ffmpeg.destroy();
+    streams.opus?.unpipe(this);
+    streams.ffmpeg?.destroy();
     super._destroy(err, cb);
   }
 

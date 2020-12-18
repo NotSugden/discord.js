@@ -236,18 +236,20 @@ class Util {
    * @param {number} [guildsPerShard=1000] Number of guilds per shard
    * @returns {Promise<number>} The recommended number of shards
    */
-  static fetchRecommendedShards(token, guildsPerShard = 1000) {
+  static async fetchRecommendedShards(token, guildsPerShard = 1000) {
     if (!token) throw new DiscordError('TOKEN_MISSING');
-    return fetch(`${DefaultOptions.http.api}/v${DefaultOptions.http.version}${Endpoints.botGateway}`, {
+    const response = await fetch(`${DefaultOptions.http.api}/v${DefaultOptions.http.version}${Endpoints.botGateway}`, {
       method: 'GET',
       headers: { Authorization: `Bot ${token.replace(/^Bot\s*/i, '')}` },
-    })
-      .then(res => {
-        if (res.ok) return res.json();
-        if (res.status === 401) throw new DiscordError('TOKEN_INVALID');
-        throw res;
-      })
-      .then(data => data.shards * (1000 / guildsPerShard));
+    });
+    if (response.ok) {
+      const { shards } = await response.json();
+      return shards * (1000 / guildsPerShard);
+    } else if (response.status === 401) {
+      throw new DiscordError('TOKEN_INVALID');
+    } else {
+      throw response;
+    }
   }
 
   /**
@@ -449,11 +451,12 @@ class Util {
    * @returns {Promise<Object[]>} Updated item list, with `id` and `position` properties
    * @private
    */
-  static setPosition(item, position, relative, sorted, route, reason) {
+  static async setPosition(item, position, relative, sorted, route, reason) {
     let updatedItems = sorted.array();
     Util.moveElementInArray(updatedItems, item, position, relative);
     updatedItems = updatedItems.map((r, i) => ({ id: r.id, position: i }));
-    return route.patch({ data: updatedItems, reason }).then(() => updatedItems);
+    await route.patch({ data: updatedItems, reason });
+    return updatedItems;
   }
 
   /**
@@ -464,7 +467,7 @@ class Util {
    * @private
    */
   static basename(path, ext) {
-    let res = parse(path);
+    const res = parse(path);
     return ext && res.ext.startsWith(ext) ? res.name : res.base.split('?')[0];
   }
 

@@ -33,27 +33,29 @@ class ShardClientUtil {
 
     if (mode === 'process') {
       process.on('message', this._handleMessage.bind(this));
-      client.on('ready', () => {
-        process.send({ _ready: true });
-      });
-      client.on('disconnect', () => {
-        process.send({ _disconnect: true });
-      });
-      client.on('reconnecting', () => {
-        process.send({ _reconnecting: true });
-      });
+      client
+        .on('ready', () => {
+          process.send({ _ready: true });
+        })
+        .on('disconnect', () => {
+          process.send({ _disconnect: true });
+        })
+        .on('reconnecting', () => {
+          process.send({ _reconnecting: true });
+        });
     } else if (mode === 'worker') {
       this.parentPort = require('worker_threads').parentPort;
       this.parentPort.on('message', this._handleMessage.bind(this));
-      client.on('ready', () => {
-        this.parentPort.postMessage({ _ready: true });
-      });
-      client.on('disconnect', () => {
-        this.parentPort.postMessage({ _disconnect: true });
-      });
-      client.on('reconnecting', () => {
-        this.parentPort.postMessage({ _reconnecting: true });
-      });
+      client
+        .on('ready', () => {
+          this.parentPort.postMessage({ _ready: true });
+        })
+        .on('disconnect', () => {
+          this.parentPort.postMessage({ _disconnect: true });
+        })
+        .on('reconnecting', () => {
+          this.parentPort.postMessage({ _reconnecting: true });
+        });
     }
   }
 

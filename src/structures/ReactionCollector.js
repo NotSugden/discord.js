@@ -197,7 +197,7 @@ class ReactionCollector extends Collector {
    * @returns {Snowflake|string}
    */
   static key(reaction) {
-    return reaction.emoji.id || reaction.emoji.name;
+    return reaction.emoji.id ?? reaction.emoji.name;
   }
 }
 

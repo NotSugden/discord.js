@@ -10,7 +10,7 @@ class ClientPresence extends Presence {
    * @param {Object} [data={}] The data for the client presence
    */
   constructor(client, data = {}) {
-    super(client, Object.assign(data, { status: data.status || 'online', user: { id: null } }));
+    super(client, Object.assign(data, { status: data.status ?? 'online', user: { id: null } }));
   }
 
   set(presence) {
@@ -45,7 +45,7 @@ class ClientPresence extends Presence {
     const packet = {
       afk: afk ?? false,
       since: since ?? null,
-      status: status || this.status,
+      status: status ?? this.status,
       game: activity
         ? {
             type: activity.type,
@@ -57,8 +57,8 @@ class ClientPresence extends Presence {
               ? {
                   large_text: activity.assets.largeText,
                   small_text: activity.assets.smallText,
-                  large_image: assets.get(activity.assets.largeImage) || activity.assets.largeImage,
-                  small_image: assets.get(activity.assets.smallImage) || activity.assets.smallImage,
+                  large_image: assets.get(activity.assets.largeImage) ?? activity.assets.largeImage,
+                  small_image: assets.get(activity.assets.smallImage) ?? activity.assets.smallImage,
                 }
               : undefined,
             timestamps: activity.timestamps,

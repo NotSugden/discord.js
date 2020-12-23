@@ -121,7 +121,7 @@ class GuildMember extends Base {
    */
   get lastMessage() {
     const channel = this.guild.channels.cache.get(this.lastMessageChannelID);
-    return channel?.messages.cache.get(this.lastMessageID) || null;
+    return channel?.messages.cache.get(this.lastMessageID) ?? null;
   }
 
   /**
@@ -132,7 +132,7 @@ class GuildMember extends Base {
   get voice() {
     if (!Structures) Structures = require('../util/Structures');
     const VoiceState = Structures.get('VoiceState');
-    return this.guild.voiceStates.cache.get(this.id) || new VoiceState(this.guild, { user_id: this.id });
+    return this.guild.voiceStates.cache.get(this.id) ?? new VoiceState(this.guild, { user_id: this.id });
   }
 
   /**
@@ -162,7 +162,7 @@ class GuildMember extends Base {
     if (!Structures) Structures = require('../util/Structures');
     const Presence = Structures.get('Presence');
     return (
-      this.guild.presences.cache.get(this.id) ||
+      this.guild.presences.cache.get(this.id) ??
       new Presence(this.client, {
         user: {
           id: this.id,
@@ -179,7 +179,7 @@ class GuildMember extends Base {
    */
   get displayColor() {
     const role = this.roles.color;
-    return role?.color || 0;
+    return role?.color ?? 0;
   }
 
   /**
@@ -189,7 +189,7 @@ class GuildMember extends Base {
    */
   get displayHexColor() {
     const role = this.roles.color;
-    return role?.hexColor || '#000000';
+    return role?.hexColor ?? '#000000';
   }
 
   /**
@@ -207,7 +207,7 @@ class GuildMember extends Base {
    * @readonly
    */
   get displayName() {
-    return this.nickname || this.user.username;
+    return this.nickname ?? this.user.username;
   }
 
   /**

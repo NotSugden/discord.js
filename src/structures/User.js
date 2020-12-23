@@ -135,7 +135,7 @@ class User extends Base {
    */
   get lastMessage() {
     const channel = this.client.channels.cache.get(this.lastMessageChannelID);
-    return channel?.messages.cache.get(this.lastMessageID) || null;
+    return channel?.messages.cache.get(this.lastMessageID) ?? null;
   }
 
   /**
@@ -178,7 +178,7 @@ class User extends Base {
    * @returns {string}
    */
   displayAvatarURL(options) {
-    return this.avatarURL(options) || this.defaultAvatarURL;
+    return this.avatarURL(options) ?? this.defaultAvatarURL;
   }
 
   /**
@@ -226,7 +226,7 @@ class User extends Base {
    * @readonly
    */
   get dmChannel() {
-    return this.client.channels.cache.find(c => c.type === 'dm' && c.recipient.id === this.id) || null;
+    return this.client.channels.cache.find(c => c.type === 'dm' && c.recipient.id === this.id) ?? null;
   }
 
   /**

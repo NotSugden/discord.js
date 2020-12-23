@@ -33,7 +33,7 @@ class Webhook {
      * @name Webhook#token
      * @type {?string}
      */
-    Object.defineProperty(this, 'token', { value: data.token || null, writable: true, configurable: true });
+    Object.defineProperty(this, 'token', { value: data.token ?? null, writable: true, configurable: true });
 
     /**
      * The avatar for the webhook

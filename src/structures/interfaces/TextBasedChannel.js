@@ -38,7 +38,7 @@ class TextBasedChannel {
    * @readonly
    */
   get lastMessage() {
-    return this.messages.cache.get(this.lastMessageID) || null;
+    return this.messages.cache.get(this.lastMessageID) ?? null;
   }
 
   /**
@@ -314,7 +314,7 @@ class TextBasedChannel {
    */
   async bulkDelete(messages, filterOld = false) {
     if (Array.isArray(messages) || messages instanceof Collection) {
-      let messageIDs = messages instanceof Collection ? messages.keyArray() : messages.map(m => m.id || m);
+      let messageIDs = messages instanceof Collection ? messages.keyArray() : messages.map(m => m.id ?? m);
       if (filterOld) {
         messageIDs = messageIDs.filter(id => Date.now() - Snowflake.deconstruct(id).date.getTime() < 1209600000);
       }

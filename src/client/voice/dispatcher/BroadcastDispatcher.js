@@ -36,7 +36,7 @@ class BroadcastDispatcher extends StreamDispatcher {
    * @returns {boolean} true if the bitrate has been successfully changed.
    */
   setBitrate(value) {
-    if (!value || !this.streams.opus || !this.streams.opus.setBitrate) return false;
+    if (!value || !this.bitrateEditable) return false;
     const bitrate = value === 'auto' ? 48 : value;
     this.streams.opus.setBitrate(bitrate * 1000);
     return true;

@@ -153,7 +153,7 @@ class Guild extends Base {
      * The full amount of members in this guild
      * @type {number}
      */
-    this.memberCount = data.member_count || this.memberCount;
+    this.memberCount = data.member_count ?? this.memberCount;
 
     /**
      * Whether the guild is "large" (has more than large_threshold members, 50 by default)
@@ -278,7 +278,7 @@ class Guild extends Base {
      * @type {DefaultMessageNotifications|number}
      */
     this.defaultMessageNotifications =
-      DefaultMessageNotifications[data.default_message_notifications] || data.default_message_notifications;
+      DefaultMessageNotifications[data.default_message_notifications] ?? data.default_message_notifications;
 
     /**
      * The value set for the guild's system channel flags
@@ -302,7 +302,7 @@ class Guild extends Base {
        * <info>You will need to fetch the guild using {@link Guild#fetch} if you want to receive this parameter</info>
        * @type {?number}
        */
-      this.maximumPresences = data.max_presences || 25000;
+      this.maximumPresences = data.max_presences ?? 25000;
     } else if (typeof this.maximumPresences === 'undefined') {
       this.maximumPresences = null;
     }
@@ -358,7 +358,7 @@ class Guild extends Base {
 
     this.id = data.id;
     this.available = !data.unavailable;
-    this.features = data.features || this.features || [];
+    this.features = data.features ?? this.features ?? [];
 
     /**
      * The ID of the rules channel for the guild
@@ -535,7 +535,7 @@ class Guild extends Base {
    */
   get owner() {
     return (
-      this.members.cache.get(this.ownerID) ||
+      this.members.cache.get(this.ownerID) ??
       (this.client.options.partials.includes(PartialTypes.GUILD_MEMBER)
         ? this.members.add({ user: { id: this.ownerID } }, true)
         : null)
@@ -548,7 +548,7 @@ class Guild extends Base {
    * @readonly
    */
   get afkChannel() {
-    return this.client.channels.cache.get(this.afkChannelID) || null;
+    return this.client.channels.cache.get(this.afkChannelID) ?? null;
   }
 
   /**
@@ -557,7 +557,7 @@ class Guild extends Base {
    * @readonly
    */
   get systemChannel() {
-    return this.client.channels.cache.get(this.systemChannelID) || null;
+    return this.client.channels.cache.get(this.systemChannelID) ?? null;
   }
 
   /**
@@ -566,7 +566,7 @@ class Guild extends Base {
    * @readonly
    */
   get widgetChannel() {
-    return this.client.channels.cache.get(this.widgetChannelID) || null;
+    return this.client.channels.cache.get(this.widgetChannelID) ?? null;
   }
 
   /**
@@ -575,7 +575,7 @@ class Guild extends Base {
    * @readonly
    */
   get rulesChannel() {
-    return this.client.channels.cache.get(this.rulesChannelID) || null;
+    return this.client.channels.cache.get(this.rulesChannelID) ?? null;
   }
 
   /**
@@ -584,7 +584,7 @@ class Guild extends Base {
    * @readonly
    */
   get publicUpdatesChannel() {
-    return this.client.channels.cache.get(this.publicUpdatesChannelID) || null;
+    return this.client.channels.cache.get(this.publicUpdatesChannelID) ?? null;
   }
 
   /**
@@ -594,7 +594,7 @@ class Guild extends Base {
    */
   get me() {
     return (
-      this.members.cache.get(this.client.user.id) ||
+      this.members.cache.get(this.client.user.id) ??
       (this.client.options.partials.includes(PartialTypes.GUILD_MEMBER)
         ? this.members.add({ user: { id: this.client.user.id } }, true)
         : null)

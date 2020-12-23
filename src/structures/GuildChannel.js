@@ -55,7 +55,7 @@ class GuildChannel extends Channel {
      * The ID of the category parent of this channel
      * @type {?Snowflake}
      */
-    this.parentID = data.parent_id || null;
+    this.parentID = data.parent_id ?? null;
 
     /**
      * A map of permission overwrites in this channel for roles and users
@@ -75,7 +75,7 @@ class GuildChannel extends Channel {
    * @readonly
    */
   get parent() {
-    return this.guild.channels.cache.get(this.parentID) || null;
+    return this.guild.channels.cache.get(this.parentID) ?? null;
   }
 
   /**
@@ -123,7 +123,7 @@ class GuildChannel extends Channel {
     if (!verified) member = this.guild.members.resolve(member);
     if (!member) return [];
 
-    roles = roles || member.roles.cache;
+    if (!roles) roles = member.roles.cache;
     const roleOverwrites = [];
     let memberOverwrites;
     let everyoneOverwrites;
@@ -228,7 +228,7 @@ class GuildChannel extends Channel {
    *   .catch(console.error);
    */
   async updateOverwrite(userOrRole, options, reason) {
-    userOrRole = this.guild.roles.resolve(userOrRole) || this.client.users.resolve(userOrRole);
+    userOrRole = this.guild.roles.resolve(userOrRole) ?? this.client.users.resolve(userOrRole);
     if (!userOrRole) throw new TypeError('INVALID_TYPE', 'parameter', 'User nor a Role');
 
     const existing = this.permissionOverwrites.get(userOrRole.id);
@@ -255,7 +255,7 @@ class GuildChannel extends Channel {
    *   .catch(console.error);
    */
   async createOverwrite(userOrRole, options, reason) {
-    userOrRole = this.guild.roles.resolve(userOrRole) || this.client.users.resolve(userOrRole);
+    userOrRole = this.guild.roles.resolve(userOrRole) ?? this.client.users.resolve(userOrRole);
     if (!userOrRole) throw new TypeError('INVALID_TYPE', 'parameter', 'User nor a Role');
 
     const type = userOrRole instanceof Role ? OverwriteTypes.role : OverwriteTypes.member;
@@ -359,11 +359,11 @@ class GuildChannel extends Channel {
 
     const newData = await this.client.api.channels(this.id).patch({
       data: {
-        name: (data.name || this.name).trim(),
-        type: data.type ? ChannelTypes[data.type.toUpperCase()] : this.type,
+        name: (data.name ?? this.name).trim(),
+        type: ChannelTypes[(data.type ?? this.type).toUpperCase()],
         topic: data.topic,
         nsfw: data.nsfw,
-        bitrate: data.bitrate || this.bitrate,
+        bitrate: data.bitrate ?? this.bitrate,
         user_limit: typeof data.userLimit !== 'undefined' ? data.userLimit : this.userLimit,
         parent_id: data.parentID,
         lock_permissions: data.lockPermissions,

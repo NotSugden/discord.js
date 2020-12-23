@@ -205,7 +205,7 @@ class GuildMemberManager extends BaseManager {
    * @example
    * // Ban a user by ID (or with a user/guild member object)
    * guild.members.ban('84484653687267328')
-   *   .then(user => console.log(`Banned ${user.username || user.id || user} from ${guild.name}`))
+   *   .then(user => console.log(`Banned ${user.username ?? user.id ?? user} from ${guild.name}`))
    *   .catch(console.error);
    */
   async ban(user, options = { days: 0 }) {
@@ -218,7 +218,7 @@ class GuildMemberManager extends BaseManager {
     const _user = this.client.users.resolve(id);
     if (_user) {
       const member = this.resolve(_user);
-      return member || _user;
+      return member ?? _user;
     }
     return id;
   }
@@ -279,7 +279,7 @@ class GuildMemberManager extends BaseManager {
         },
       });
       const fetchedMembers = new Collection();
-      const option = query || limit || presences || user_ids;
+      const option = query ?? limit ?? presences ?? user_ids;
       let i = 0;
       const handler = (members, _, chunk) => {
         timeout.refresh();

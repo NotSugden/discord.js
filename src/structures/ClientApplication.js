@@ -15,13 +15,13 @@ class ClientApplication extends Application {
      * The app's cover image
      * @type {?string}
      */
-    this.cover = data.cover_image || null;
+    this.cover = data.cover_image ?? null;
 
     /**
      * The app's RPC origins, if enabled
      * @type {string[]}
      */
-    this.rpcOrigins = data.rpc_origins || [];
+    this.rpcOrigins = data.rpc_origins ?? [];
 
     /**
      * If this app's bot requires a code grant when using the OAuth2 flow

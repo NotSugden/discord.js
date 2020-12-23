@@ -55,8 +55,7 @@ class RoleManager extends BaseManager {
 
     // We cannot fetch a single role, as of this commit's date, Discord API throws with 405
     const data = await this.client.api.guilds(this.guild.id).roles.get();
-    const roles = new Collection();
-    for (const role of data) roles.set(role.id, this.add(role, cache));
+    const roles = data.reduce((collection, role) => collection.set(role.id, this.add(role, cache)), new Collection());
     return id ? roles.get(id) ?? null : roles;
   }
 

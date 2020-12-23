@@ -29,7 +29,7 @@ class MessageEmbed {
      * * `link` - a link embed
      * @type {string}
      */
-    this.type = data.type || 'rich';
+    this.type = data.type ?? 'rich';
 
     /**
      * The title of this embed
@@ -94,7 +94,7 @@ class MessageEmbed {
     this.thumbnail = data.thumbnail
       ? {
           url: data.thumbnail.url,
-          proxyURL: data.thumbnail.proxyURL || data.thumbnail.proxy_url,
+          proxyURL: data.thumbnail.proxyURL ?? data.thumbnail.proxy_url,
           height: data.thumbnail.height,
           width: data.thumbnail.width,
         }
@@ -116,7 +116,7 @@ class MessageEmbed {
     this.image = data.image
       ? {
           url: data.image.url,
-          proxyURL: data.image.proxyURL || data.image.proxy_url,
+          proxyURL: data.image.proxyURL ?? data.image.proxy_url,
           height: data.image.height,
           width: data.image.width,
         }
@@ -139,7 +139,7 @@ class MessageEmbed {
     this.video = data.video
       ? {
           url: data.video.url,
-          proxyURL: data.video.proxyURL || data.video.proxy_url,
+          proxyURL: data.video.proxyURL ?? data.video.proxy_url,
           height: data.video.height,
           width: data.video.width,
         }
@@ -162,8 +162,8 @@ class MessageEmbed {
       ? {
           name: data.author.name,
           url: data.author.url,
-          iconURL: data.author.iconURL || data.author.icon_url,
-          proxyIconURL: data.author.proxyIconURL || data.author.proxy_icon_url,
+          iconURL: data.author.iconURL ?? data.author.icon_url,
+          proxyIconURL: data.author.proxyIconURL ?? data.author.proxy_icon_url,
         }
       : null;
 
@@ -200,8 +200,8 @@ class MessageEmbed {
     this.footer = data.footer
       ? {
           text: data.footer.text,
-          iconURL: data.footer.iconURL || data.footer.icon_url,
-          proxyIconURL: data.footer.proxyIconURL || data.footer.proxy_icon_url,
+          iconURL: data.footer.iconURL ?? data.footer.icon_url,
+          proxyIconURL: data.footer.proxyIconURL ?? data.footer.proxy_icon_url,
         }
       : null;
 
@@ -209,7 +209,7 @@ class MessageEmbed {
      * The files of this embed
      * @type {Array<FileOptions|string|MessageAttachment>}
      */
-    this.files = data.files || [];
+    this.files = data.files ?? [];
   }
 
   /**

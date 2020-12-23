@@ -56,7 +56,7 @@ class StreamDispatcher extends Writable {
      * The broadcast controlling this dispatcher, if any
      * @type {?VoiceBroadcast}
      */
-    this.broadcast = this.streams.broadcast || null;
+    this.broadcast = this.streams.broadcast ?? null;
 
     this._pausedTime = 0;
     this._silentPausedTime = 0;
@@ -319,7 +319,7 @@ class StreamDispatcher extends Writable {
    * @readonly
    */
   get bitrateEditable() {
-    return this.streams.opus && this.streams.opus.setBitrate;
+    return typeof this.streams.opus?.setBitrate === 'function';
   }
 
   // Volume

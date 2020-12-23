@@ -90,7 +90,7 @@ class VoiceWebSocket extends EventEmitter {
   send(data) {
     this.emit('debug', `[WS] >> ${data}`);
     return new Promise((resolve, reject) => {
-      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) throw new Error('WS_NOT_OPEN', data);
+      if (this.ws?.readyState !== WebSocket.OPEN) throw new Error('WS_NOT_OPEN', data);
       this.ws.send(data, null, error => {
         if (error) reject(error);
         else resolve(data);

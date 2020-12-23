@@ -315,7 +315,7 @@ class GuildAuditLogsEntry {
      * The reason of this entry
      * @type {?string}
      */
-    this.reason = data.reason || null;
+    this.reason = data.reason ?? null;
 
     /**
      * The user that executed this entry
@@ -362,7 +362,7 @@ class GuildAuditLogsEntry {
       case Actions.MESSAGE_DELETE:
       case Actions.MESSAGE_BULK_DELETE:
         this.extra = {
-          channel: guild.channels.cache.get(data.options.channel_id) || { id: data.options.channel_id },
+          channel: guild.channels.cache.get(data.options.channel_id) ?? { id: data.options.channel_id },
           count: Number(data.options.count),
         };
         break;
@@ -370,7 +370,7 @@ class GuildAuditLogsEntry {
       case Actions.MESSAGE_PIN:
       case Actions.MESSAGE_UNPIN:
         this.extra = {
-          channel: guild.client.channels.cache.get(data.options.channel_id) || { id: data.options.channel_id },
+          channel: guild.client.channels.cache.get(data.options.channel_id) ?? { id: data.options.channel_id },
           messageID: data.options.message_id,
         };
         break;
@@ -386,7 +386,7 @@ class GuildAuditLogsEntry {
       case Actions.CHANNEL_OVERWRITE_DELETE:
         switch (Number(data.options.type)) {
           case OverwriteTypes.role:
-            this.extra = guild.roles.cache.get(data.options.id) || {
+            this.extra = guild.roles.cache.get(data.options.id) ?? {
               id: data.options.id,
               name: data.options.role_name,
               type: OverwriteTypes[OverwriteTypes.role],
@@ -394,7 +394,7 @@ class GuildAuditLogsEntry {
             break;
 
           case OverwriteTypes.member:
-            this.extra = guild.members.cache.get(data.options.id) || {
+            this.extra = guild.members.cache.get(data.options.id) ?? {
               id: data.options.id,
               type: OverwriteTypes[OverwriteTypes.member],
             };
@@ -416,7 +416,7 @@ class GuildAuditLogsEntry {
     this.target = null;
     if (targetType === Targets.UNKNOWN) {
       this.target = this.changes.reduce((o, c) => {
-        o[c.key] = c.new || c.old;
+        o[c.key] = c.new ?? c.old;
         return o;
       }, {});
       this.target.id = data.target_id;
@@ -429,12 +429,12 @@ class GuildAuditLogsEntry {
       this.target = guild.client.guilds.cache.get(data.target_id);
     } else if (targetType === Targets.WEBHOOK) {
       this.target =
-        logs.webhooks.get(data.target_id) ||
+        logs.webhooks.get(data.target_id) ??
         new Webhook(
           guild.client,
           this.changes.reduce(
             (o, c) => {
-              o[c.key] = c.new || c.old;
+              o[c.key] = c.new ?? c.old;
               return o;
             },
             {
@@ -448,11 +448,11 @@ class GuildAuditLogsEntry {
         if (me.permissions.has(Permissions.FLAGS.MANAGE_GUILD)) {
           const change = this.changes.find(c => c.key === 'code');
           return guild.fetchInvites().then(invites => {
-            this.target = invites.find(i => i.code === (change.new || change.old));
+            this.target = invites.find(i => i.code === (change.new ?? change.old));
           });
         } else {
           this.target = this.changes.reduce((o, c) => {
-            o[c.key] = c.new || c.old;
+            o[c.key] = c.new ?? c.old;
             return o;
           }, {});
           return this.target;
@@ -462,16 +462,16 @@ class GuildAuditLogsEntry {
       // Discord sends a channel id for the MESSAGE_BULK_DELETE action type.
       this.target =
         data.action_type === Actions.MESSAGE_BULK_DELETE
-          ? guild.channels.cache.get(data.target_id) || { id: data.target_id }
+          ? guild.channels.cache.get(data.target_id) ?? { id: data.target_id }
           : guild.client.users.cache.get(data.target_id);
     } else if (targetType === Targets.INTEGRATION) {
       this.target =
-        logs.integrations.get(data.target_id) ||
+        logs.integrations.get(data.target_id) ??
         new Integration(
           guild.client,
           this.changes.reduce(
             (o, c) => {
-              o[c.key] = c.new || c.old;
+              o[c.key] = c.new ?? c.old;
               return o;
             },
             { id: data.target_id },
@@ -479,7 +479,7 @@ class GuildAuditLogsEntry {
           guild,
         );
     } else if (data.target_id) {
-      this.target = guild[`${targetType.toLowerCase()}s`].cache.get(data.target_id) || { id: data.target_id };
+      this.target = guild[`${targetType.toLowerCase()}s`].cache.get(data.target_id) ?? { id: data.target_id };
     }
   }
 

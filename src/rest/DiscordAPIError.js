@@ -7,7 +7,7 @@
 class DiscordAPIError extends Error {
   constructor(path, error, method, status) {
     super();
-    const flattened = this.constructor.flattenErrors(error.errors || error).join('\n');
+    const flattened = this.constructor.flattenErrors(error.errors ?? error).join('\n');
     this.name = 'DiscordAPIError';
     this.message = error.message && flattened ? `${error.message}\n${flattened}` : error.message || flattened;
 

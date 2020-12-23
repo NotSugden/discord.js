@@ -271,7 +271,7 @@ class APIMessage {
       name = findName(attachment);
     } else {
       attachment = fileLike.attachment;
-      name = fileLike.name || findName(attachment);
+      name = fileLike.name ?? findName(attachment);
     }
 
     const resource = await DataResolver.resolveFile(attachment);

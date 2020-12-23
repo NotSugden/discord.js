@@ -116,7 +116,7 @@ class Invite extends Base {
    * @readonly
    */
   get deletable() {
-    const guild = this.guild;
+    const { guild } = this;
     if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
     if (!guild.me) throw new Error('GUILD_UNCACHED_ME');
     return (

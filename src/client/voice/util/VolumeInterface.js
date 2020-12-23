@@ -49,7 +49,7 @@ class VolumeInterface extends EventEmitter {
   }
 
   applyVolume(buffer, volume) {
-    volume = volume || this._volume;
+    volume = volume ?? this._volume;
     if (volume === 1) return buffer;
 
     const out = Buffer.alloc(buffer.length);

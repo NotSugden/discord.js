@@ -55,7 +55,7 @@ class TextChannel extends GuildChannel {
      * The ratelimit per user for this channel in seconds
      * @type {number}
      */
-    this.rateLimitPerUser = data.rate_limit_per_user || 0;
+    this.rateLimitPerUser = data.rate_limit_per_user ?? 0;
 
     /**
      * The timestamp when the last pinned message was pinned, if there was one

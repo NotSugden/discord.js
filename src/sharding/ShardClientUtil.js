@@ -110,10 +110,10 @@ class ShardClientUtil {
    */
   fetchClientValues(prop, shard) {
     return new Promise((resolve, reject) => {
-      const parent = this.parentPort || process;
+      const parent = this.parentPort ?? process;
 
       const listener = message => {
-        if (!message || message._sFetchProp !== prop || message._sFetchPropShard !== shard) return;
+        if (message?._sFetchProp !== prop || message._sFetchPropShard !== shard) return;
         parent.removeListener('message', listener);
         if (!message._error) resolve(message._result);
         else reject(Util.makeError(message._error));
@@ -144,7 +144,7 @@ class ShardClientUtil {
       script = typeof script === 'function' ? `(${script})(this)` : script;
 
       const listener = message => {
-        if (!message || message._sEval !== script || message._sEvalShard !== shard) return;
+        if (message?._sEval !== script || message._sEvalShard !== shard) return;
         parent.removeListener('message', listener);
         if (!message._error) resolve(message._result);
         else reject(Util.makeError(message._error));

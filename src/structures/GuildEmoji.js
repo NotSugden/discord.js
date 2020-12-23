@@ -98,7 +98,7 @@ class GuildEmoji extends BaseGuildEmoji {
    *   .catch(console.error);
    */
   edit(data, reason) {
-    const roles = data.roles?.map(r => r.id || r);
+    const roles = data.roles?.map(r => r.id ?? r);
     return this.client.api
       .guilds(this.guild.id)
       .emojis(this.id)

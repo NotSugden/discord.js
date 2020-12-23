@@ -37,7 +37,7 @@ class DataResolver {
    */
   static resolveCode(data, regex) {
     const match = regex.exec(data);
-    return match ? match[1] || data : data;
+    return match?.[1] ?? data;
   }
 
   /**

@@ -66,7 +66,7 @@ class PlayInterface {
       return this.player.playBroadcast(resource, options);
     }
     if (resource instanceof Readable || typeof resource === 'string') {
-      const type = options.type || 'unknown';
+      const type = options.type ?? 'unknown';
       if (type === 'unknown') {
         return this.player.playUnknown(resource, options);
       } else if (type === 'converted') {

@@ -120,7 +120,7 @@ class Message extends Base {
      * A list of embeds in the message - e.g. YouTube Player
      * @type {MessageEmbed[]}
      */
-    this.embeds = (data.embeds || []).map(e => new Embed(e, true));
+    this.embeds = (data.embeds ?? []).map(e => new Embed(e, true));
 
     /**
      * A collection of attachments in the message - e.g. Pictures - mapped by their ID
@@ -166,7 +166,7 @@ class Message extends Base {
      * ID of the webhook that sent the message, if applicable
      * @type {?Snowflake}
      */
-    this.webhookID = data.webhook_id || null;
+    this.webhookID = data.webhook_id ?? null;
 
     /**
      * Supplemental application information for group activities
@@ -277,7 +277,7 @@ class Message extends Base {
    * @readonly
    */
   get member() {
-    return this.guild ? this.guild.members.resolve(this.author) || null : null;
+    return this.guild && this.guild.members.resolve(this.author);
   }
 
   /**
@@ -304,7 +304,7 @@ class Message extends Base {
    * @readonly
    */
   get guild() {
-    return this.channel.guild || null;
+    return this.channel.guild ?? null;
   }
 
   /**

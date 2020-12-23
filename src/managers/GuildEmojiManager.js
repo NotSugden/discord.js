@@ -48,16 +48,14 @@ class GuildEmojiManager extends BaseGuildEmojiManager {
     if (!attachment) throw new TypeError('REQ_RESOURCE_TYPE');
 
     const data = { image: attachment, name };
-    if (roles) {
-      data.roles = [];
-      for (let role of roles instanceof Collection ? roles.values() : roles) {
-        role = this.guild.roles.resolve(role);
-        if (!role) {
-          throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
-        }
-        data.roles.push(role.id);
+    data.roles = roles?.reduce((array, role) => {
+      const resolvedRole = this.guild.roles.resolve(role);
+      if (!resolvedRole) {
+        throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
       }
-    }
+      array.push(role);
+      return array;
+    });
 
     const emoji = await this.client.api.guilds(this.guild.id).emojis.post({ data, reason });
     return this.client.actions.GuildEmojiCreate.handle(this.guild, emoji).emoji;
@@ -91,9 +89,7 @@ class GuildEmojiManager extends BaseGuildEmojiManager {
     }
 
     const data = await this.client.api.guilds(this.guild.id).emojis.get();
-    const emojis = new Collection();
-    for (const emoji of data) emojis.set(emoji.id, this.add(emoji, cache));
-    return emojis;
+    return data.reduce((emojis, emoji) => emojis.set(emoji.id, this.add(emoji, cache)), new Collection());
   }
 }
 

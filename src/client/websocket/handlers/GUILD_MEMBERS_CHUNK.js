@@ -6,9 +6,10 @@ const { Events } = require('../../../util/Constants');
 module.exports = (client, { d: data }) => {
   const guild = client.guilds.cache.get(data.guild_id);
   if (!guild) return;
-  const members = new Collection();
-
-  for (const member of data.members) members.set(member.user.id, guild.members.add(member));
+  const members = data.members.reduce(
+    (collection, member) => collection.set(member.user.id, guild.members.add(member)),
+    new Collection(),
+  );
   if (data.presences) {
     for (const presence of data.presences) guild.presences.add(Object.assign(presence, { guild }));
   }

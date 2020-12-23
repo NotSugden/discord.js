@@ -169,11 +169,12 @@ class Client extends BaseClient {
    * @readonly
    */
   get emojis() {
-    const emojis = new BaseGuildEmojiManager(this);
-    for (const guild of this.guilds.cache.values()) {
-      if (guild.available) for (const emoji of guild.emojis.cache.values()) emojis.cache.set(emoji.id, emoji);
-    }
-    return emojis;
+    return this.guilds.cache.reduce((emojis, guild) => {
+      if (guild.available) {
+        for (const [id, emoji] of guild.emojis.cache) emojis.cache.set(id, emoji);
+      }
+      return emojis;
+    }, new BaseGuildEmojiManager(this));
   }
 
   /**
@@ -292,9 +293,7 @@ class Client extends BaseClient {
    */
   async fetchVoiceRegions() {
     const data = await this.api.voice.regions.get();
-    const regions = new Collection();
-    for (const region of data) regions.set(region.id, new VoiceRegion(region));
-    return regions;
+    return data.reduce((regions, region) => regions.set(region.id, new VoiceRegion(region)), new Collection());
   }
 
   /**

@@ -106,10 +106,8 @@ class TextChannel extends GuildChannel {
    *   .catch(console.error);
    */
   async fetchWebhooks() {
-    const data = await this.client.api.channels[this.id].webhooks.get();
-    const hooks = new Collection();
-    for (const hook of data) hooks.set(hook.id, new Webhook(this.client, hook));
-    return hooks;
+    const data = await this.client.api.channels(this.id).webhooks.get();
+    return data.reduce((hooks, hook) => hooks.set(hook.id, new Webhook(this.client, hook)), new Collection());
   }
 
   /**

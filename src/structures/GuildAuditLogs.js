@@ -160,20 +160,20 @@ class GuildAuditLogs {
      * The entries for this guild's audit logs
      * @type {Collection<Snowflake, GuildAuditLogsEntry>}
      */
-    this.entries = new Collection();
-    for (const item of data.audit_log_entries) {
-      const entry = new GuildAuditLogsEntry(this, guild, item);
-      this.entries.set(entry.id, entry);
-    }
+    this.entries = data.audit_log_entries.reduce(
+      (entries, entry) => entries.set(entry.id, new GuildAuditLogsEntry(this, guild, entry)),
+      new Collection(),
+    );
   }
 
   /**
    * Handles possible promises for entry targets.
    * @returns {Promise<GuildAuditLogs>}
    */
-  static build(...args) {
+  static async build(...args) {
     const logs = new GuildAuditLogs(...args);
-    return Promise.all(logs.entries.map(e => e.target)).then(() => logs);
+    await Promise.all(logs.entries.map(e => e.target));
+    return logs;
   }
 
   /**

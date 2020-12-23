@@ -718,9 +718,10 @@ exports.WebhookTypes = [
 exports.OverwriteTypes = createEnum(['role', 'member']);
 
 function keyMirror(arr) {
-  let tmp = Object.create(null);
-  for (const value of arr) tmp[value] = value;
-  return tmp;
+  return arr.reduce((obj, value) => {
+    obj[value] = value;
+    return obj;
+  }, {});
 }
 
 function createEnum(keys) {

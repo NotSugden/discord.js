@@ -44,10 +44,8 @@ class DiscordAPIError extends Error {
    * @private
    */
   static flattenErrors(obj, key = '') {
-    let messages = [];
-
-    for (const [k, v] of Object.entries(obj)) {
-      if (k === 'message') continue;
+    return Object.entries(obj).reduce((messages, [k, v]) => {
+      if (k === 'message') return messages;
       const newKey = key ? (isNaN(k) ? `${key}.${k}` : `${key}[${k}]`) : k;
 
       if (v._errors) {
@@ -57,11 +55,10 @@ class DiscordAPIError extends Error {
       } else if (typeof v === 'string') {
         messages.push(v);
       } else {
-        messages = messages.concat(this.flattenErrors(v, newKey));
+        return messages.concat(this.flattenErrors(v, newKey));
       }
-    }
-
-    return messages;
+      return messages;
+    });
   }
 }
 

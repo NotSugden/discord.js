@@ -216,9 +216,12 @@ class ShardingManager extends EventEmitter {
    * @returns {Promise<Shard[]>}
    */
   broadcast(message) {
-    const promises = [];
-    for (const shard of this.shards.values()) promises.push(shard.send(message));
-    return Promise.all(promises);
+    return Promise.all(
+      this.shards.reduce((promises, shard) => {
+        promises.push(shard.send(message));
+        return promises;
+      }),
+    );
   }
 
   /**
@@ -263,9 +266,7 @@ class ShardingManager extends EventEmitter {
 
     if (this.shards.size !== this.shardList.length) return Promise.reject(new Error('SHARDING_IN_PROCESS'));
 
-    const promises = [];
-    for (const sh of this.shards.values()) promises.push(sh[method](...args));
-    return Promise.all(promises);
+    return Promise.all(this.shards.map(_shard => _shard[method](...args)));
   }
 
   /**

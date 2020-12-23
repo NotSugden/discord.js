@@ -44,12 +44,10 @@ class Team extends Base {
      * The Team's members
      * @type {Collection<Snowflake, TeamMember>}
      */
-    this.members = new Collection();
-
-    for (const memberData of data.members) {
-      const member = new TeamMember(this, memberData);
-      this.members.set(member.id, member);
-    }
+    this.members = data.members.reduce(
+      (members, member) => members.set(member.user.id, new TeamMember(this, member)),
+      new Collection(),
+    );
   }
 
   /**

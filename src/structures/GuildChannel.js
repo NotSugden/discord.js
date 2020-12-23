@@ -292,13 +292,7 @@ class GuildChannel extends Channel {
    * @readonly
    */
   get members() {
-    const members = new Collection();
-    for (const member of this.guild.members.cache.values()) {
-      if (this.permissionsFor(member).has(Permissions.FLAGS.VIEW_CHANNEL, false)) {
-        members.set(member.id, member);
-      }
-    }
-    return members;
+    return this.guild.members.cache.filter(member => this.permissionsFor(member)?.has(Permissions.FLAGS.VIEW_CHANNEL, false));
   }
 
   /**
@@ -500,13 +494,11 @@ class GuildChannel extends Channel {
    * @returns {Promise<Collection<string, Invite>>}
    */
   async fetchInvites() {
-    const inviteItems = await this.client.api.channels(this.id).invites.get();
-    const invites = new Collection();
-    for (const inviteItem of inviteItems) {
-      const invite = new Invite(this.client, inviteItem);
-      invites.set(invite.code, invite);
-    }
-    return invites;
+    const data = await this.client.api.channels(this.id).invites.get();
+    return data.reduce(
+      (invites, invite) => invites.set(invite.code, new Invite(this.client, invite)),
+      new Collection(),
+    );
   }
 
   /* eslint-disable max-len */

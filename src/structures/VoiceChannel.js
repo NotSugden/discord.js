@@ -30,13 +30,12 @@ class VoiceChannel extends GuildChannel {
    * @readonly
    */
   get members() {
-    const coll = new Collection();
-    for (const state of this.guild.voiceStates.cache.values()) {
+    return this.guild.voiceStates.cache.reduce((members, state) => {
       if (state.channelID === this.id && state.member) {
-        coll.set(state.id, state.member);
+        members.set(state.id, state.member);
       }
-    }
-    return coll;
+      return members;
+    }, new Collection());
   }
 
   /**

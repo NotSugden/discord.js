@@ -180,9 +180,7 @@ class ShardClientUtil {
   async _handleMessage(message) {
     if (!message) return;
     if (message._fetchProp) {
-      const props = message._fetchProp.split('.');
-      let value = this.client;
-      for (const prop of props) value = value[prop];
+      const value = message._fetchProp.split('.').reduce((val, prop) => val[prop], this.client);
       this._respond('fetchProp', { _fetchProp: message._fetchProp, _result: value });
     } else if (message._eval) {
       try {

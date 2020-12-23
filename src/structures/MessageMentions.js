@@ -46,14 +46,12 @@ class MessageMentions {
          */
         this.users = new Collection(users);
       } else {
-        this.users = new Collection();
-        for (const mention of users) {
-          if (mention.member && message.guild) {
-            message.guild.members.add(Object.assign(mention.member, { user: mention }));
+        this.users = users.reduce((collection, user) => {
+          if (user.member && this.guild) {
+            this.guild.members.add(Object.assign(user.member, { user }));
           }
-          const user = message.client.users.add(mention);
-          this.users.set(user.id, user);
-        }
+          return collection.set(user.id, this.client.users.add(user));
+        }, new Collection());
       }
     } else {
       this.users = new Collection();
@@ -68,11 +66,11 @@ class MessageMentions {
          */
         this.roles = new Collection(roles);
       } else {
-        this.roles = new Collection();
-        for (const mention of roles) {
-          const role = message.channel.guild.roles.cache.get(mention);
-          if (role) this.roles.set(role.id, role);
-        }
+        this.roles = roles.reduce((collection, id) => {
+          const role = this.guild.roles.cache.get(id);
+          if (role) collection.set(role.id, role);
+          return collection;
+        }, new Collection());
       }
     } else {
       this.roles = new Collection();
@@ -110,17 +108,16 @@ class MessageMentions {
          */
         this.crosspostedChannels = new Collection(crosspostedChannels);
       } else {
-        this.crosspostedChannels = new Collection();
         const channelTypes = Object.keys(ChannelTypes);
-        for (const d of crosspostedChannels) {
-          const type = channelTypes[d.type];
-          this.crosspostedChannels.set(d.id, {
-            channelID: d.id,
-            guildID: d.guild_id,
+        this.crosspostedChannels = crosspostedChannels.reduce((collection, data) => {
+          const type = channelTypes[data.type];
+          return collection.set(data.id, {
+            channelID: data.id,
+            guildID: data.guild_id,
             type: type ? type.toLowerCase() : 'unknown',
-            name: d.name,
+            name: data.name,
           });
-        }
+        }, new Collection());
       }
     } else {
       this.crosspostedChannels = new Collection();
@@ -136,12 +133,11 @@ class MessageMentions {
   get members() {
     if (this._members) return this._members;
     if (!this.guild) return null;
-    this._members = new Collection();
-    this.users.forEach(user => {
+    return this.users.reduce((members, user) => {
       const member = this.guild.members.resolve(user);
-      if (member) this._members.set(member.user.id, member);
-    });
-    return this._members;
+      if (member) members.set(member.id, member);
+      return members;
+    }, (this._members = new Collection()));
   }
 
   /**
@@ -174,8 +170,8 @@ class MessageMentions {
   has(data, { ignoreDirect = false, ignoreRoles = false, ignoreEveryone = false } = {}) {
     if (!ignoreEveryone && this.everyone) return true;
     const GuildMember = require('./GuildMember');
-    if (!ignoreRoles && data instanceof GuildMember) {
-      for (const role of this.roles.values()) if (data.roles.cache.has(role.id)) return true;
+    if (!ignoreRoles && data instanceof GuildMember && this.roles.some(role => data.roles.cache.has(role.id))) {
+      return true;
     }
 
     if (!ignoreDirect) {

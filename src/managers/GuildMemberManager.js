@@ -166,15 +166,14 @@ class GuildMemberManager extends BaseManager {
     if (typeof days !== 'number') throw new TypeError('PRUNE_DAYS_TYPE');
 
     const query = { days };
-    const resolvedRoles = [];
-
-    for (const role of roles) {
-      const resolvedRole = this.guild.roles.resolveID(role);
+    const resolvedRoles = roles.reduce((resolved, role) => {
+      const resolvedRole = this.guild.roles.resolve(role);
       if (!resolvedRole) {
         throw new TypeError('INVALID_TYPE', 'roles', 'Array of Roles or Snowflakes', true);
       }
-      resolvedRoles.push(resolvedRole);
-    }
+      resolved.push(resolvedRole.id);
+      return resolved;
+    }, []);
 
     if (resolvedRoles.length) {
       query.include_roles = dry ? resolvedRoles.join(',') : resolvedRoles;
@@ -183,7 +182,8 @@ class GuildMemberManager extends BaseManager {
     const endpoint = this.client.api.guilds(this.guild.id).prune;
 
     if (dry) {
-      return endpoint.get({ query, reason }).then(data => data.pruned);
+      const { pruned } = await endpoint.get({ query, reason });
+      return pruned;
     }
 
     const { pruned } = await endpoint.post({

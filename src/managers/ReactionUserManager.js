@@ -33,19 +33,17 @@ class ReactionUserManager extends BaseManager {
    * @returns {Promise<Collection<Snowflake, User>>}
    */
   async fetch({ limit = 100, after, before } = {}) {
-    const message = this.reaction.message;
+    const { emoji, message } = this.reaction;
     const data = await this.client.api
       .channels(message.channel.id)
       .messages(message.id)
-      .reactions(this.reaction.emoji.identifier)
+      .reactions(emoji.identifier)
       .get({ query: { limit, before, after } });
-    const users = new Collection();
-    for (const rawUser of data) {
+    return data.reduce((users, rawUser) => {
       const user = this.client.users.add(rawUser);
       this.cache.set(user.id, user);
-      users.set(user.id, user);
-    }
-    return users;
+      return users.set(user.id, user);
+    }, new Collection());
   }
 
   /**

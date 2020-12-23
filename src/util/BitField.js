@@ -71,10 +71,7 @@ class BitField {
    * @returns {BitField} These bits or new BitField if the instance is frozen.
    */
   add(...bits) {
-    let total = this.constructor.defaultBit;
-    for (const bit of bits) {
-      total |= this.constructor.resolve(bit);
-    }
+    const total = bits.reduce((acc, bit) => acc | this.constructor.resolve(bit), 0);
     if (Object.isFrozen(this)) return new this.constructor(this.bitfield | total);
     this.bitfield |= total;
     return this;
@@ -86,10 +83,7 @@ class BitField {
    * @returns {BitField} These bits or new BitField if the instance is frozen.
    */
   remove(...bits) {
-    let total = this.constructor.defaultBit;
-    for (const bit of bits) {
-      total |= this.constructor.resolve(bit);
-    }
+    const total = bits.reduce((acc, bit) => acc | this.constructor.resolve(bit), 0);
     if (Object.isFrozen(this)) return new this.constructor(this.bitfield & ~total);
     this.bitfield &= ~total;
     return this;
@@ -99,12 +93,13 @@ class BitField {
    * Gets an object mapping field names to a {@link boolean} indicating whether the
    * bit is available.
    * @param {...*} hasParams Additional parameters for the has method, if any
-   * @returns {Object}
+   * @returns {Object<string, boolean>}
    */
   serialize(...hasParams) {
-    const serialized = {};
-    for (const [flag, bit] of Object.entries(this.constructor.FLAGS)) serialized[flag] = this.has(bit, ...hasParams);
-    return serialized;
+    return Object.entries(this.constructor.FLAGS).reduce((serialized, [flag, bit]) => {
+      serialized[flag] = this.has(bit, ...hasParams);
+      return serialized;
+    }, {});
   }
 
   /**
@@ -146,7 +141,7 @@ class BitField {
     if (typeof bit === 'undefined') return defaultBit;
     if (typeof defaultBit === typeof bit && bit >= defaultBit) return bit;
     if (bit instanceof BitField) return bit.bitfield;
-    if (Array.isArray(bit)) return bit.map(p => this.resolve(p)).reduce((prev, p) => prev | p, defaultBit);
+    if (Array.isArray(bit)) return bit.reduce((prev, next) => prev | this.resolve(next), defaultBit);
     if (typeof bit === 'string' && typeof this.FLAGS[bit] !== 'undefined') return this.FLAGS[bit];
     throw new RangeError('BITFIELD_INVALID', bit);
   }

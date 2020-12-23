@@ -82,9 +82,7 @@ class MessageManager extends BaseManager {
    */
   async fetchPinned(cache = true) {
     const data = await this.client.api.channels(this.channel.id).pins.get();
-    const messages = new Collection();
-    for (const message of data) messages.set(message.id, this.add(message, cache));
-    return messages;
+    return data.reduce((messages, message) => messages.set(message.id, this.add(message, cache)), new Collection());
   }
 
   /**
@@ -135,10 +133,8 @@ class MessageManager extends BaseManager {
   }
 
   async _fetchMany(options = {}, cache) {
-    const data = await this.client.api.channels[this.channel.id].messages.get({ query: options });
-    const messages = new Collection();
-    for (const message of data) messages.set(message.id, this.add(message, cache));
-    return messages;
+    const data = await this.client.api.channels(this.channel.id).messages.get({ query: options });
+    data.reduce((messages, message) => messages.set(message.id, this.add(message, cache)), new Collection());
   }
 }
 

@@ -722,12 +722,10 @@ class Guild extends Base {
    */
   async fetchInvites() {
     const data = await this.client.api.guilds(this.id).invites.get();
-    const invites = new Collection();
-    for (const inviteItem of data) {
-      const invite = new Invite(this.client, inviteItem);
-      invites.set(invite.code, invite);
-    }
-    return invites;
+    return data.reduce(
+      (invites, invite) => invites.set(invite.code, new Invite(this.client, invite)),
+      new Collection(),
+    );
   }
 
   /**
@@ -797,9 +795,7 @@ class Guild extends Base {
    */
   async fetchWebhooks() {
     const data = await this.client.api.guilds(this.id).webhooks.get();
-    const hooks = new Collection();
-    for (const hook of data) hooks.set(hook.id, new Webhook(this.client, hook));
-    return hooks;
+    return data.reduce((hooks, hook) => hooks.set(hook.id, new Webhook(this.client, hook)), new Collection());
   }
 
   /**
@@ -808,9 +804,7 @@ class Guild extends Base {
    */
   async fetchVoiceRegions() {
     const data = await this.client.api.guilds(this.id).regions.get();
-    const regions = new Collection();
-    for (const region of data) regions.set(region.id, new VoiceRegion(region));
-    return regions;
+    return data.reduce((regions, region) => regions.set(region.id, new VoiceRegion(region)), new Collection());
   }
 
   /**
@@ -893,17 +887,15 @@ class Guild extends Base {
     if (!user) throw new TypeError('INVALID_TYPE', 'user', 'UserResolvable');
     if (this.members.cache.has(user)) return this.members.cache.get(user);
     options.access_token = options.accessToken;
-    if (options.roles) {
-      const roles = [];
-      for (let role of options.roles instanceof Collection ? options.roles.values() : options.roles) {
-        role = this.roles.resolve(role);
-        if (!role) {
-          throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
-        }
-        roles.push(role.id);
+    options.roles = options.roles?.reduce((array, role) => {
+      const resolvedRole = this.guild.roles.resolve(role);
+      if (!resolvedRole) {
+        throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
       }
-      options.roles = roles;
-    }
+      array.push(role);
+      return array;
+    });
+
     const data = await this.client.api.guilds(this.id).members(user).put({ data: options });
     // Data is an empty buffer if the member is already part of the guild.
     return data instanceof Buffer ? this.members.fetch(user) : this.members.add(data);

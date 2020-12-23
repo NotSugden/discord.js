@@ -248,10 +248,11 @@ class Message extends Base {
     else this.embeds = this.embeds.slice();
 
     if ('attachments' in data) {
-      this.attachments = new Collection();
-      for (const attachment of data.attachments) {
-        this.attachments.set(attachment.id, new MessageAttachment(attachment.url, attachment.filename, attachment));
-      }
+      this.attachments = data.attachments.reduce(
+        (attachments, attachment) =>
+          attachments.set(attachment.id, new MessageAttachment(attachment.url, attachment.filename, attachment)),
+        new Collection(),
+      );
     } else {
       this.attachments = new Collection(this.attachments);
     }

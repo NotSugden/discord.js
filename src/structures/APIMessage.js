@@ -204,17 +204,14 @@ class APIMessage {
       embedLikes.push(this.options.embed);
     }
 
-    const fileLikes = [];
-    if (this.options.files) {
-      fileLikes.push(...this.options.files);
-    }
+    const fileLikes = this.options.files ? this.options.files.slice() : [];
     for (const embed of embedLikes) {
       if (embed.files) {
         fileLikes.push(...embed.files);
       }
     }
 
-    this.files = await Promise.all(fileLikes.map(f => this.constructor.resolveFile(f)));
+    this.files = await Promise.all(fileLikes.map(fileLike => this.constructor.resolveFile(fileLike)));
     return this;
   }
 
@@ -227,26 +224,23 @@ class APIMessage {
 
     if (!Array.isArray(this.data.content)) return [this];
 
-    const apiMessages = [];
-
-    for (let i = 0; i < this.data.content.length; i++) {
+    return this.data.content.reduce((apiMessages, content, index) => {
       let data;
       let opt;
 
-      if (i === this.data.content.length - 1) {
-        data = { ...this.data, content: this.data.content[i] };
-        opt = { ...this.options, content: this.data.content[i] };
+      if (index === this.data.content.length - 1) {
+        data = { ...this.data, content };
+        opt = { ...this.options, content };
       } else {
-        data = { content: this.data.content[i], tts: this.data.tts, allowed_mentions: this.options.allowedMentions };
-        opt = { content: this.data.content[i], tts: this.data.tts, allowedMentions: this.options.allowedMentions };
+        data = { content, tts: this.data.tts, allowed_mentions: this.options.allowedMentions };
+        opt = { content, tts: this.data.tts, allowedMentions: this.options.allowedMentions };
       }
 
       const apiMessage = new APIMessage(this.target, opt);
       apiMessage.data = data;
       apiMessages.push(apiMessage);
-    }
-
-    return apiMessages;
+      return apiMessages;
+    }, []);
   }
 
   /**

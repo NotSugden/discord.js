@@ -53,7 +53,7 @@ class VoiceChannel extends GuildChannel {
    * @readonly
    */
   get deletable() {
-    return super.deletable && this.permissionsFor(this.client.user).has(Permissions.FLAGS.CONNECT, false);
+    return super.deletable && this.permissionsFor(this.client.user).has(Permissions.FLAGS.CONNECT);
   }
 
   /**
@@ -62,28 +62,31 @@ class VoiceChannel extends GuildChannel {
    * @readonly
    */
   get editable() {
-    return this.manageable && this.permissionsFor(this.client.user).has(Permissions.FLAGS.CONNECT, false);
+    return this.manageable && this.permissionsFor(this.client.user).has(Permissions.FLAGS.CONNECT);
   }
 
   /**
    * Whether the channel is joinable by the client user
-   * @type {boolean}
+   * @type {?boolean}
    * @readonly
    */
   get joinable() {
-    if (!this.viewable) return false;
-    if (!this.permissionsFor(this.client.user).has(Permissions.FLAGS.CONNECT, false)) return false;
-    if (this.full && !this.permissionsFor(this.client.user).has(Permissions.FLAGS.MOVE_MEMBERS, false)) return false;
-    return true;
+    const { viewable } = this;
+    if (!viewable) return viewable === null ? null : false;
+    const permissions = this.permissionsFor(this.client.user);
+    return (
+      permissions.has(Permissions.FLAGS.CONNECT) && (!this.full || permissions.has(Permissions.FLAGS.MOVE_MEMBERS))
+    );
   }
 
   /**
    * Checks if the client has permission to send audio to the voice channel
-   * @type {boolean}
+   * @type {?boolean}
    * @readonly
    */
   get speakable() {
-    return this.permissionsFor(this.client.user).has(Permissions.FLAGS.SPEAK, false);
+    const permissions = this.permissionsFor(this.client.user);
+    return permissions && permissions.has(Permissions.FLAGS.SPEAK);
   }
 
   /**

@@ -741,9 +741,9 @@ declare module 'discord.js' {
     private rolePermissions(role: Role): Readonly<Permissions>;
 
     public readonly calculatedPosition: number;
-    public readonly deletable: boolean;
+    public readonly deletable: boolean | null;
     public guild: Guild;
-    public readonly manageable: boolean;
+    public readonly manageable: boolean | null;
     public readonly members: Collection<Snowflake, GuildMember>;
     public name: string;
     public readonly parent: CategoryChannel | null;
@@ -753,7 +753,7 @@ declare module 'discord.js' {
     public readonly position: number;
     public rawPosition: number;
     public type: Exclude<keyof typeof ChannelType, 'dm' | 'group' | 'unknown'>;
-    public readonly viewable: boolean;
+    public readonly viewable: boolean | null;
     public clone(options?: GuildChannelCloneOptions): Promise<this>;
     public createInvite(options?: InviteOptions): Promise<Invite>;
     public createOverwrite(
@@ -829,7 +829,7 @@ declare module 'discord.js' {
     public deleteDM(): Promise<DMChannel>;
     public edit(data: GuildMemberEditData, reason?: string): Promise<GuildMember>;
     public kick(reason?: string): Promise<GuildMember>;
-    public permissionsIn(channel: ChannelResolvable): Readonly<Permissions>;
+    public permissionsIn(channel: ChannelResolvable): Readonly<Permissions> | null;
     public setNickname(nickname: string | null, reason?: string): Promise<GuildMember>;
     public toJSON(): object;
     public toString(): string;
@@ -964,7 +964,8 @@ declare module 'discord.js' {
     public content: string;
     public readonly createdAt: Date;
     public createdTimestamp: number;
-    public readonly deletable: boolean;
+    public readonly crosspostable: boolean | null;
+    public readonly deletable: boolean | null;
     public deleted: boolean;
     public readonly editable: boolean;
     public readonly editedAt: Date | null;
@@ -976,7 +977,7 @@ declare module 'discord.js' {
     public mentions: MessageMentions;
     public nonce: string | number | null;
     public readonly partial: false;
-    public readonly pinnable: boolean;
+    public readonly pinnable: boolean | null;
     public pinned: boolean;
     public reactions: ReactionManager;
     public system: boolean;
@@ -1614,10 +1615,10 @@ declare module 'discord.js' {
   export class VoiceChannel extends GuildChannel {
     constructor(guild: Guild, data?: object);
     public bitrate: number;
-    public readonly editable: boolean;
+    public readonly editable: boolean | null;
     public readonly full: boolean;
-    public readonly joinable: boolean;
-    public readonly speakable: boolean;
+    public readonly joinable: boolean | null;
+    public readonly speakable: boolean | null;
     public type: 'voice';
     public userLimit: number;
     public join(): Promise<VoiceConnection>;
@@ -3167,7 +3168,7 @@ declare module 'discord.js' {
     embeds: Message['embeds'];
     flags: Message['flags'];
     mentions: Message['mentions'];
-    readonly pinnable: boolean;
+    readonly pinnable: Message['pinnable'];
     reactions: Message['reactions'];
     readonly url: string;
   }

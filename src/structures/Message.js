@@ -383,27 +383,27 @@ class Message extends Base {
 
   /**
    * Whether the message is deletable by the client user
-   * @type {boolean}
+   * @type {?boolean}
    * @readonly
    */
   get deletable() {
-    return Boolean(
-      !this.deleted &&
-        (this.author.id === this.client.user.id ||
-          this.channel.permissionsFor?.(this.client.user)?.has(Permissions.FLAGS.MANAGE_MESSAGES)),
-    );
+    if (this.deleted) return false;
+    if (this.author.id === this.client.user.id) return true;
+    if (!this.guild) return false;
+    const permissions = this.channel.permissionsFor(this.client.user);
+    return permissions && permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
   }
 
   /**
    * Whether the message is pinnable by the client user
-   * @type {boolean}
+   * @type {?boolean}
    * @readonly
    */
   get pinnable() {
-    return (
-      this.type === 'DEFAULT' &&
-      (!this.guild || this.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES, false))
-    );
+    if (this.type !== 'DEFAULT') return false;
+    if (!this.guild) return true;
+    const permissions = this.channel.permissionsFor(this.client.user);
+    return permissions && permissions.has(Permissions.FLAGS.MANAGE_MESSAGES);
   }
 
   /**
@@ -420,18 +420,19 @@ class Message extends Base {
 
   /**
    * Whether the message is crosspostable by the client user
-   * @type {boolean}
+   * @type {?boolean}
    * @readonly
    */
   get crosspostable() {
+    if (this.channel.type !== 'news' || this.type !== 'DEFAULT' || this.flags.has(MessageFlags.FLAGS.CROSSPOSTED)) {
+      return false;
+    }
+    const permissions = this.channel.permissionsFor(this.client.user);
+    const { FLAGS } = Permissions;
     return (
-      this.channel.type === 'news' &&
-      !this.flags.has(MessageFlags.FLAGS.CROSSPOSTED) &&
-      this.type === 'DEFAULT' &&
-      this.channel.viewable &&
-      this.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.SEND_MESSAGES) &&
-      (this.author.id === this.client.user.id ||
-        this.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES))
+      this.viewable &&
+      permissions.has(FLAGS.SEND_MESSAGES) &&
+      (this.author.id === this.client.user.id || permissions.has(FLAGS.MANAGE_MESSAGES))
     );
   }
 

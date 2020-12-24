@@ -565,28 +565,31 @@ class GuildChannel extends Channel {
 
   /**
    * Whether the channel is deletable by the client user
-   * @type {boolean}
+   * @type {?boolean}
    * @readonly
    */
   get deletable() {
-    return this.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_CHANNELS, false);
+    const permissions = this.permissionsFor(this.client.user);
+    return permissions && permissions.has(Permissions.FLAGS.MANAGE_CHANNELS);
   }
 
   /**
    * Whether the channel is manageable by the client user
-   * @type {boolean}
+   * @type {?boolean}
    * @readonly
    */
   get manageable() {
     if (this.client.user.id === this.guild.ownerID) return true;
+    const permissions = this.permissionsFor(this.client.user);
+    if (!permissions) return null;
     if (this.type === 'voice') {
-      if (!this.permissionsFor(this.client.user).has(Permissions.FLAGS.CONNECT, false)) {
+      if (!permissions.has(Permissions.FLAGS.CONNECT)) {
         return false;
       }
     } else if (!this.viewable) {
       return false;
     }
-    return this.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_CHANNELS, false);
+    return permissions.has(Permissions.FLAGS.MANAGE_CHANNELS);
   }
 
   /**
@@ -597,8 +600,7 @@ class GuildChannel extends Channel {
   get viewable() {
     if (this.client.user.id === this.guild.ownerID) return true;
     const permissions = this.permissionsFor(this.client.user);
-    if (!permissions) return false;
-    return permissions.has(Permissions.FLAGS.VIEW_CHANNEL, false);
+    return permissions && permissions.has(Permissions.FLAGS.VIEW_CHANNEL);
   }
 
   /**

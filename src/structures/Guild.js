@@ -894,7 +894,7 @@ class Guild extends Base {
       }
       array.push(role);
       return array;
-    });
+    }, []);
 
     const data = await this.client.api.guilds(this.id).members(user).put({ data: options });
     // Data is an empty buffer if the member is already part of the guild.

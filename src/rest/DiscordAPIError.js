@@ -58,7 +58,7 @@ class DiscordAPIError extends Error {
         return messages.concat(this.flattenErrors(v, newKey));
       }
       return messages;
-    });
+    }, []);
   }
 }
 

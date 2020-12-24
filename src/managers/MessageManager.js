@@ -134,7 +134,7 @@ class MessageManager extends BaseManager {
 
   async _fetchMany(options = {}, cache) {
     const data = await this.client.api.channels(this.channel.id).messages.get({ query: options });
-    data.reduce((messages, message) => messages.set(message.id, this.add(message, cache)), new Collection());
+    return data.reduce((messages, message) => messages.set(message.id, this.add(message, cache)), new Collection());
   }
 }
 

@@ -221,6 +221,7 @@ class ShardingManager extends EventEmitter {
         promises.push(shard.send(message));
         return promises;
       }),
+      [],
     );
   }
 

@@ -306,7 +306,7 @@ class WebSocketShard extends EventEmitter {
    * @private
    */
   onError(event) {
-    const error = event && event.error ? event.error : event;
+    const error = event?.error ?? event;
     if (!error) return;
 
     /**

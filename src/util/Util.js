@@ -34,7 +34,7 @@ class Util {
 
     for (let [prop, newProp] of Object.entries(props)) {
       if (!newProp) continue;
-      newProp = newProp === true ? prop : newProp;
+      if (newProp === true) newProp = prop;
 
       const element = obj[prop];
       const elemIsObj = isObject(element);

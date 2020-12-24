@@ -35,19 +35,19 @@ class MessageEmbed {
      * The title of this embed
      * @type {?string}
      */
-    this.title = 'title' in data ? data.title : null;
+    this.title = data.title ?? null;
 
     /**
      * The description of this embed
      * @type {?string}
      */
-    this.description = 'description' in data ? data.description : null;
+    this.description = data.description ?? null;
 
     /**
      * The URL of this embed
      * @type {?string}
      */
-    this.url = 'url' in data ? data.url : null;
+    this.url = data.url ?? null;
 
     /**
      * The color of this embed
@@ -447,11 +447,7 @@ class MessageEmbed {
    * @returns {EmbedField[]}
    */
   static normalizeFields(...fields) {
-    return fields
-      .flat(2)
-      .map(field =>
-        this.normalizeField(field?.name, field?.value, typeof field?.inline === 'boolean' ? field.inline : false),
-      );
+    return fields.flat(2).map(field => this.normalizeField(field?.name, field?.value, field.inline ?? false));
   }
 }
 

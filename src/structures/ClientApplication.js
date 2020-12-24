@@ -27,13 +27,13 @@ class ClientApplication extends Application {
      * If this app's bot requires a code grant when using the OAuth2 flow
      * @type {?boolean}
      */
-    this.botRequireCodeGrant = typeof data.bot_require_code_grant !== 'undefined' ? data.bot_require_code_grant : null;
+    this.botRequireCodeGrant = data.bot_require_code_grant ?? null;
 
     /**
      * If this app's bot is public
      * @type {?boolean}
      */
-    this.botPublic = typeof data.bot_public !== 'undefined' ? data.bot_public : null;
+    this.botPublic = data.bot_public ?? null;
 
     /**
      * The owner of this OAuth application

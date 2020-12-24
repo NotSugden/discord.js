@@ -35,7 +35,7 @@ class APIRequest {
         ? this.client.options.http.api
         : `${this.client.options.http.api}/v${this.client.options.http.version}`;
     const url = API + this.path;
-    let headers = {
+    const headers = {
       'User-Agent': UserAgent,
     };
 
@@ -43,14 +43,14 @@ class APIRequest {
 
     if (options.auth !== false) headers.Authorization = this.rest.getAuth();
     if (options.reason) headers['X-Audit-Log-Reason'] = encodeURIComponent(options.reason);
-    if (options.headers) headers = Object.assign(headers, options.headers);
+    if (options.headers) Object.assign(headers, options.headers);
 
     let body;
     if (this.options.files?.length) {
       body = new FormData();
       for (const file of this.options.files) if (file?.file) body.append(file.name, file.file, file.name);
       if (typeof this.options.data !== 'undefined') body.append('payload_json', JSON.stringify(this.options.data));
-      headers = Object.assign(headers, body.getHeaders());
+      Object.assign(headers, body.getHeaders());
       // eslint-disable-next-line eqeqeq
     } else if (this.options.data != null) {
       body = JSON.stringify(this.options.data);

@@ -114,7 +114,7 @@ class Message extends Base {
      * lost if re-fetched</warn>
      * @type {?string}
      */
-    this.nonce = 'nonce' in data ? data.nonce : null;
+    this.nonce = data.nonce ?? null;
 
     /**
      * A list of embeds in the message - e.g. YouTube Player
@@ -259,13 +259,13 @@ class Message extends Base {
 
     this.mentions = new Mentions(
       this,
-      'mentions' in data ? data.mentions : this.mentions.users,
-      'mention_roles' in data ? data.mention_roles : this.mentions.roles,
-      'mention_everyone' in data ? data.mention_everyone : this.mentions.everyone,
-      'mention_channels' in data ? data.mention_channels : this.mentions.crosspostedChannels,
+      data.mentions ?? this.mentions.users,
+      data.mention_roles ?? this.mentions.roles,
+      data.mention_everyone ?? this.mentions.everyone,
+      data.mention_channels ?? this.mentions.crosspostedChannels,
     );
 
-    this.flags = new MessageFlags('flags' in data ? data.flags : 0).freeze();
+    this.flags = new MessageFlags(data.flags ?? 0).freeze();
 
     return clone;
   }

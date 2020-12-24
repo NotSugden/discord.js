@@ -93,11 +93,11 @@ class APIMessage {
 
     if (content) {
       if (isCode) {
-        const codeName = typeof this.options.code === 'string' ? this.options.code : '';
+        const codeName = this.options.code ?? '';
         content = `\`\`\`${codeName}\n${Util.cleanCodeBlockContent(content)}\n\`\`\``;
         if (isSplit) {
-          splitOptions.prepend = `${splitOptions.prepend || ''}\`\`\`${codeName}\n`;
-          splitOptions.append = `\n\`\`\`${splitOptions.append || ''}`;
+          splitOptions.prepend = `${splitOptions.prepend ?? ''}\`\`\`${codeName}\n`;
+          splitOptions.append = `\n\`\`\`${splitOptions.append ?? ''}`;
         }
       }
 
@@ -148,13 +148,10 @@ class APIMessage {
     let flags;
     if (this.isMessage) {
       // eslint-disable-next-line eqeqeq
-      flags = this.options.flags != null ? new MessageFlags(this.options.flags).bitfield : this.target.flags.bitfield;
+      flags = (this.options.flags != null ? new MessageFlags(this.options.flags) : this.target.flags).bitfield;
     }
 
-    let allowedMentions =
-      typeof this.options.allowedMentions === 'undefined'
-        ? this.target.client.options.allowedMentions
-        : this.options.allowedMentions;
+    let allowedMentions = this.target.client.options.allowedMentions ?? this.options.allowedMentions;
 
     if (allowedMentions) {
       allowedMentions = Util.cloneObject(allowedMentions);

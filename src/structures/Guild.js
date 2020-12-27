@@ -225,7 +225,7 @@ class Guild extends Base {
      */
     this.premiumTier = data.premium_tier;
 
-    if (typeof data.premium_subscription_count !== 'undefined') {
+    if ('premium_subscription_count' in data) {
       /**
        * The total number of boosts for this server
        * @type {?number}
@@ -233,7 +233,7 @@ class Guild extends Base {
       this.premiumSubscriptionCount = data.premium_subscription_count;
     }
 
-    if (typeof data.widget_enabled !== 'undefined') {
+    if ('widget_enabled' in data) {
       /**
        * Whether widget images are enabled on this guild
        * @type {?boolean}
@@ -241,7 +241,7 @@ class Guild extends Base {
       this.widgetEnabled = data.widget_enabled;
     }
 
-    if (typeof data.widget_channel_id !== 'undefined') {
+    if ('widget_channel_id' in data) {
       /**
        * The widget channel ID, if enabled
        * @type {?string}

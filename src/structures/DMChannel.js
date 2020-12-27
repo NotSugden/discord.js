@@ -30,7 +30,7 @@ class DMChannel extends Channel {
   _patch(data) {
     super._patch(data);
 
-    if (data.recipients) {
+    if ('recipients' in data) {
       /**
        * The recipient on the other end of the DM
        * @type {User}

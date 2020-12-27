@@ -24,6 +24,8 @@ class ClientUser extends Structures.get('User') {
       this.mfaEnabled = data.mfa_enabled;
     }
 
+    if ('token' in data) this.client.token = data.token;
+
     if ('verified' in data) {
       /**
        * Whether or not this account has been verified
@@ -31,8 +33,6 @@ class ClientUser extends Structures.get('User') {
        */
       this.verified = data.verified;
     }
-
-    if (data.token) this.client.token = data.token;
   }
 
   /**

@@ -31,15 +31,15 @@ class BaseGuildEmoji extends Emoji {
   }
 
   _patch(data) {
-    if ('name' in data) this.name = data.name;
-
-    if ('require_colons' in data) {
+    if ('available' in data) {
       /**
-       * Whether or not this emoji requires colons surrounding it
+       * Whether this emoji is available
        * @type {?boolean}
        */
-      this.requiresColons = data.require_colons;
+      this.available = data.available;
     }
+
+    if ('name' in data) this.name = data.name;
 
     if ('managed' in data) {
       /**
@@ -49,12 +49,12 @@ class BaseGuildEmoji extends Emoji {
       this.managed = data.managed;
     }
 
-    if ('available' in data) {
+    if ('require_colons' in data) {
       /**
-       * Whether this emoji is available
+       * Whether or not this emoji requires colons surrounding it
        * @type {?boolean}
        */
-      this.available = data.available;
+      this.requiresColons = data.require_colons;
     }
 
     if ('roles' in data) this._roles = data.roles;

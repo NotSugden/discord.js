@@ -96,10 +96,9 @@ class BitField {
    * @returns {Object<string, boolean>}
    */
   serialize(...hasParams) {
-    return Object.entries(this.constructor.FLAGS).reduce((serialized, [flag, bit]) => {
-      serialized[flag] = this.has(bit, ...hasParams);
-      return serialized;
-    }, {});
+    return Object.fromEntries(
+      Object.entries(this.constructor.FLAGS).map(([flag, bit]) => [flag, this.has(bit, ...hasParams)]),
+    );
   }
 
   /**

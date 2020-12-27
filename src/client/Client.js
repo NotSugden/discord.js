@@ -35,13 +35,7 @@ class Client extends BaseClient {
     super(Object.assign({ _tokenType: 'Bot' }, options));
 
     // Obtain shard details from environment or if present, worker threads
-    let data = process.env;
-    try {
-      // Test if worker threads module is present and used
-      data = require('worker_threads').workerData ?? data;
-    } catch {
-      // Do nothing
-    }
+    const data = require('worker_threads').workerData ?? process.env;
 
     if (this.options.shards === DefaultOptions.shards) {
       if ('SHARDS' in data) {

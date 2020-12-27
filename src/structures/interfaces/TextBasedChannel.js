@@ -289,8 +289,7 @@ class TextBasedChannel {
    */
   awaitMessages(filter, options = {}) {
     return new Promise((resolve, reject) => {
-      const collector = this.createMessageCollector(filter, options);
-      collector.once('end', (collection, reason) => {
+      this.createMessageCollector(filter, options).once('end', (collection, reason) => {
         if (options.errors?.includes(reason)) {
           reject(collection);
         } else {

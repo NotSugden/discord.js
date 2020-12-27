@@ -67,17 +67,15 @@ class ReactionCollector extends Collector {
         .removeListener(Events.CHANNEL_DELETE, this._handleChannelDeletion)
         .removeListener(Events.GUILD_DELETE, this._handleGuildDeletion)
         .decrementMaxListeners();
-    });
-
-    this.on('collect', (reaction, user) => {
-      this.total++;
-      this.users.set(user.id, user);
-    });
-
-    this.on('remove', (reaction, user) => {
-      this.total--;
-      if (!this.collected.some(r => r.users.cache.has(user.id))) this.users.delete(user.id);
-    });
+    })
+      .on('collect', (reaction, user) => {
+        this.total++;
+        this.users.set(user.id, user);
+      })
+      .on('remove', (reaction, user) => {
+        this.total--;
+        if (!this.collected.some(r => r.users.cache.has(user.id))) this.users.delete(user.id);
+      });
   }
 
   /**

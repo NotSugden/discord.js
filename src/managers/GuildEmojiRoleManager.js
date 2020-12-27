@@ -71,7 +71,10 @@ class GuildEmojiRoleManager {
   remove(roleOrRoles) {
     if (roleOrRoles instanceof Collection) return this.remove(roleOrRoles.keyArray());
     if (!Array.isArray(roleOrRoles)) return this.remove([roleOrRoles]);
-    roleOrRoles = roleOrRoles.map(r => this.guild.roles.resolveID(r));
+    roleOrRoles = roleOrRoles.map(role => {
+      const resolvedRole = this.guild.roles.resolve(role);
+      return resolvedRole && resolvedRole.id;
+    });
 
     if (roleOrRoles.includes(null)) {
       return Promise.reject(new TypeError('INVALID_TYPE', 'roles', 'Array or Collection of Roles or Snowflakes', true));

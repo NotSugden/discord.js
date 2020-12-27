@@ -148,18 +148,14 @@ class Webhook {
     }
 
     const { data, files } = await apiMessage.resolveFiles();
-    return this.client.api
-      .webhooks(this.id, this.token)
-      .post({
-        data,
-        files,
-        query: { wait: true },
-        auth: false,
-      })
-      .then(d => {
-        const channel = this.client.channels?.cache.get(d.channel_id);
-        return channel ? channel.messages.add(d, false) : d;
-      });
+    const d = await this.client.api.webhooks(this.id, this.token).post({
+      data,
+      files,
+      query: { wait: true },
+      auth: false,
+    });
+    const channel = this.client.channels?.cache.get(d.channel_id);
+    return channel ? channel.messages.add(d, false) : d;
   }
 
   /**

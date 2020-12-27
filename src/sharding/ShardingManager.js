@@ -216,13 +216,7 @@ class ShardingManager extends EventEmitter {
    * @returns {Promise<Shard[]>}
    */
   broadcast(message) {
-    return Promise.all(
-      this.shards.reduce((promises, shard) => {
-        promises.push(shard.send(message));
-        return promises;
-      }),
-      [],
-    );
+    return Promise.all(this.shards.map(shard => shard.send(message)));
   }
 
   /**

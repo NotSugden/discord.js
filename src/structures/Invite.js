@@ -118,10 +118,11 @@ class Invite extends Base {
   get deletable() {
     const { guild } = this;
     if (!guild || !this.client.guilds.cache.has(guild.id)) return false;
-    if (!guild.me) throw new Error('GUILD_UNCACHED_ME');
+    const { me } = guild;
+    if (!me) throw new Error('GUILD_UNCACHED_ME');
     return (
-      this.channel.permissionsFor(this.client.user)?.has(Permissions.FLAGS.MANAGE_CHANNELS) ||
-      guild.me.permissions.has(Permissions.FLAGS.MANAGE_GUILD)
+      this.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_CHANNELS) ||
+      me.permissions.has(Permissions.FLAGS.MANAGE_GUILD)
     );
   }
 

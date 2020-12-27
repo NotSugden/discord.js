@@ -33,10 +33,6 @@ class Channel extends Base {
      */
     this.deleted = false;
 
-    if (data) this._patch(data);
-  }
-
-  _patch(data) {
     /**
      * The unique ID of the channel
      * @type {Snowflake}
@@ -116,7 +112,7 @@ class Channel extends Base {
         channel = new PartialGroupDMChannel(client, data);
       }
     } else {
-      guild = guild ?? client.guilds.cache.get(data.guild_id);
+      if (!guild) guild = client.guilds.cache.get(data.guild_id);
       if (guild) {
         switch (data.type) {
           case ChannelTypes.TEXT: {

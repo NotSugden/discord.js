@@ -36,8 +36,7 @@ class PacketHandler extends EventEmitter {
 
   makeStream(user, end) {
     if (this.streams.has(user)) return this.streams.get(user).stream;
-    const stream = new Readable();
-    stream.on('end', () => this.streams.delete(user));
+    const stream = new Readable().on('end', () => this.streams.delete(user));
     this.streams.set(user, { stream, end });
     return stream;
   }

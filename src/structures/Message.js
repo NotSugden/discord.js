@@ -150,7 +150,7 @@ class Message extends Base {
      * @type {ReactionManager}
      */
     this.reactions = new ReactionManager(this);
-    if (data.reactions?.length > 0) {
+    if (data.reactions) {
       for (const reaction of data.reactions) {
         this.reactions.add(reaction);
       }

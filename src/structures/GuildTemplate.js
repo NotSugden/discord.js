@@ -113,8 +113,7 @@ class GuildTemplate extends Base {
       if (createdGuild) return resolve(createdGuild);
 
       const resolveGuild = guild => {
-        client.off(Events.GUILD_CREATE, handleGuild);
-        client.decrementMaxListeners();
+        client.removeListener(Events.GUILD_CREATE, handleGuild).decrementMaxListeners();
         resolve(guild);
       };
 

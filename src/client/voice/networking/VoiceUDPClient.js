@@ -90,46 +90,46 @@ class VoiceConnectionUDPClient extends EventEmitter {
 
   async createUDPSocket(address) {
     this.discordAddress = address;
-    const socket = (this.socket = udp.createSocket('udp4'));
-    socket.on('error', e => {
-      this.emit('debug', `[UDP] Error: ${e}`);
-      this.emit('error', e);
-    });
-    socket.on('close', () => {
-      this.emit('debug', '[UDP] socket closed');
-    });
-    this.emit('debug', `[UDP] created socket`);
-    socket.once('message', message => {
-      this.emit('debug', `[UDP] message: [${[...message]}] (${message})`);
-      // Stop if the sockets have been deleted because the connection has been closed already
-      if (!this.voiceConnection.sockets.ws) return;
+    const socket = (this.socket = udp.createSocket('udp4'))
+      .on('error', e => {
+        this.emit('debug', `[UDP] Error: ${e}`);
+        this.emit('error', e);
+      })
+      .on('close', () => {
+        this.emit('debug', '[UDP] socket closed');
+      })
+      .once('message', message => {
+        this.emit('debug', `[UDP] message: [${[...message]}] (${message})`);
+        // Stop if the sockets have been deleted because the connection has been closed already
+        if (!this.voiceConnection.sockets.ws) return;
 
-      const packet = parseLocalPacket(message);
-      if (packet.error) {
-        this.emit('debug', `[UDP] ERROR: ${packet.error}`);
-        this.emit('error', packet.error);
-        return;
-      }
+        const packet = parseLocalPacket(message);
+        if (packet.error) {
+          this.emit('debug', `[UDP] ERROR: ${packet.error}`);
+          this.emit('error', packet.error);
+          return;
+        }
 
-      this.localAddress = packet.address;
-      this.localPort = packet.port;
+        this.localAddress = packet.address;
+        this.localPort = packet.port;
 
-      this.voiceConnection.sockets.ws.sendPacket({
-        op: VoiceOPCodes.SELECT_PROTOCOL,
-        d: {
-          protocol: 'udp',
-          data: {
-            address: packet.address,
-            port: packet.port,
-            mode: this.voiceConnection.authentication.mode,
+        this.voiceConnection.sockets.ws.sendPacket({
+          op: VoiceOPCodes.SELECT_PROTOCOL,
+          d: {
+            protocol: 'udp',
+            data: {
+              address: packet.address,
+              port: packet.port,
+              mode: this.voiceConnection.authentication.mode,
+            },
           },
-        },
+        });
+
+        this.emit('debug', `[UDP] << ${JSON.stringify(packet)}`);
+
+        socket.on('message', buffer => this.voiceConnection.receiver.packets.push(buffer));
       });
-
-      this.emit('debug', `[UDP] << ${JSON.stringify(packet)}`);
-
-      socket.on('message', buffer => this.voiceConnection.receiver.packets.push(buffer));
-    });
+    this.emit('debug', `[UDP] created socket`);
 
     const blankMessage = Buffer.alloc(70);
     blankMessage.writeUIntBE(this.voiceConnection.authentication.ssrc, 0, 4);

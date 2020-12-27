@@ -48,13 +48,12 @@ class GuildEmojiManager extends BaseGuildEmojiManager {
     if (!attachment) throw new TypeError('REQ_RESOURCE_TYPE');
 
     const data = { image: attachment, name };
-    data.roles = roles?.reduce((array, role) => {
+    data.roles = roles?.map(role => {
       const resolvedRole = this.guild.roles.resolve(role);
       if (!resolvedRole) {
         throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
       }
-      array.push(role);
-      return array;
+      return role.id;
     });
 
     const emoji = await this.client.api.guilds(this.guild.id).emojis.post({ data, reason });

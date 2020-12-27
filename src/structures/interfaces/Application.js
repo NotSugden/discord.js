@@ -13,16 +13,17 @@ const AssetTypes = Object.keys(ClientApplicationAssetTypes);
 class Application extends Base {
   constructor(client, data) {
     super(client);
-    this._patch(data);
-  }
 
-  _patch(data) {
     /**
      * The ID of the app
      * @type {Snowflake}
      */
     this.id = data.id;
 
+    this._patch(data);
+  }
+
+  _patch(data) {
     /**
      * The name of the app
      * @type {string}

@@ -721,7 +721,7 @@ function keyMirror(arr) {
   return arr.reduce((obj, value) => {
     obj[value] = value;
     return obj;
-  }, {});
+  }, Object.create(null));
 }
 
 function createEnum(keys) {

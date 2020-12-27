@@ -245,11 +245,8 @@ class Util {
     if (response.ok) {
       const { shards } = await response.json();
       return shards * (1000 / guildsPerShard);
-    } else if (response.status === 401) {
-      throw new DiscordError('TOKEN_INVALID');
-    } else {
-      throw response;
     }
+    throw response.status === 401 ? new DiscordError('TOKEN_INVALID') : response;
   }
 
   /**

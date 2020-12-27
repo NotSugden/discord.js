@@ -84,7 +84,7 @@ class StreamDispatcher extends Writable {
       this.destroy();
     };
 
-    this.on('error', () => streamError());
+    this.on('error', streamError);
     this.streams.input?.on('error', err => streamError('input', err));
     this.streams.ffmpeg?.on('error', err => streamError('ffmpeg', err));
     this.streams.opus?.on('error', err => streamError('opus', err));

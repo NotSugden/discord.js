@@ -17,9 +17,7 @@ class BaseGuildEmoji extends Emoji {
      */
     this.guild = guild;
 
-    this.requiresColons = null;
-    this.managed = null;
-    this.available = null;
+    this.requiresColons = this.managed = this.available = null;
 
     /**
      * Array of role ids this emoji is active for
@@ -33,9 +31,9 @@ class BaseGuildEmoji extends Emoji {
   }
 
   _patch(data) {
-    if (data.name) this.name = data.name;
+    if ('name' in data) this.name = data.name;
 
-    if (typeof data.require_colons !== 'undefined') {
+    if ('require_colons' in data) {
       /**
        * Whether or not this emoji requires colons surrounding it
        * @type {?boolean}
@@ -43,7 +41,7 @@ class BaseGuildEmoji extends Emoji {
       this.requiresColons = data.require_colons;
     }
 
-    if (typeof data.managed !== 'undefined') {
+    if ('managed' in data) {
       /**
        * Whether this emoji is managed by an external service
        * @type {?boolean}
@@ -51,7 +49,7 @@ class BaseGuildEmoji extends Emoji {
       this.managed = data.managed;
     }
 
-    if (typeof data.available !== 'undefined') {
+    if ('available' in data) {
       /**
        * Whether this emoji is available
        * @type {?boolean}
@@ -59,7 +57,7 @@ class BaseGuildEmoji extends Emoji {
       this.available = data.available;
     }
 
-    if (data.roles) this._roles = data.roles;
+    if ('roles' in data) this._roles = data.roles;
   }
 }
 

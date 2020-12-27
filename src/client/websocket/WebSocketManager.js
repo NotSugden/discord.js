@@ -184,67 +184,65 @@ class WebSocketManager extends EventEmitter {
     this.shardQueue.delete(shard);
 
     if (!shard.eventsAttached) {
-      shard.on(ShardEvents.ALL_READY, unavailableGuilds => {
-        /**
-         * Emitted when a shard turns ready.
-         * @event Client#shardReady
-         * @param {number} id The shard ID that turned ready
-         * @param {?Set<string>} unavailableGuilds Set of unavailable guild IDs, if any
-         */
-        this.client.emit(Events.SHARD_READY, shard.id, unavailableGuilds);
-
-        if (!this.shardQueue.size) this.reconnecting = false;
-        this.checkShardsReady();
-      });
-
-      shard.on(ShardEvents.CLOSE, event => {
-        if (event.code === 1000 ? this.destroyed : UNRECOVERABLE_CLOSE_CODES.includes(event.code)) {
+      shard
+        .on(ShardEvents.ALL_READY, unavailableGuilds => {
           /**
-           * Emitted when a shard's WebSocket disconnects and will no longer reconnect.
-           * @event Client#shardDisconnect
-           * @param {CloseEvent} event The WebSocket close event
-           * @param {number} id The shard ID that disconnected
+           * Emitted when a shard turns ready.
+           * @event Client#shardReady
+           * @param {number} id The shard ID that turned ready
+           * @param {?Set<string>} unavailableGuilds Set of unavailable guild IDs, if any
            */
-          this.client.emit(Events.SHARD_DISCONNECT, event, shard.id);
-          this.debug(WSCodes[event.code], shard);
-          return;
-        }
+          this.client.emit(Events.SHARD_READY, shard.id, unavailableGuilds);
 
-        if (UNRESUMABLE_CLOSE_CODES.includes(event.code)) {
-          // These event codes cannot be resumed
-          shard.sessionID = null;
-        }
+          if (!this.shardQueue.size) this.reconnecting = false;
+          this.checkShardsReady();
+        })
+        .on(ShardEvents.CLOSE, event => {
+          if (event.code === 1000 ? this.destroyed : UNRECOVERABLE_CLOSE_CODES.includes(event.code)) {
+            /**
+             * Emitted when a shard's WebSocket disconnects and will no longer reconnect.
+             * @event Client#shardDisconnect
+             * @param {CloseEvent} event The WebSocket close event
+             * @param {number} id The shard ID that disconnected
+             */
+            this.client.emit(Events.SHARD_DISCONNECT, event, shard.id);
+            this.debug(WSCodes[event.code], shard);
+            return;
+          }
 
-        /**
-         * Emitted when a shard is attempting to reconnect or re-identify.
-         * @event Client#shardReconnecting
-         * @param {number} id The shard ID that is attempting to reconnect
-         */
-        this.client.emit(Events.SHARD_RECONNECTING, shard.id);
+          if (UNRESUMABLE_CLOSE_CODES.includes(event.code)) {
+            // These event codes cannot be resumed
+            shard.sessionID = null;
+          }
 
-        this.shardQueue.add(shard);
+          /**
+           * Emitted when a shard is attempting to reconnect or re-identify.
+           * @event Client#shardReconnecting
+           * @param {number} id The shard ID that is attempting to reconnect
+           */
+          this.client.emit(Events.SHARD_RECONNECTING, shard.id);
 
-        if (shard.sessionID) {
-          this.debug(`Session ID is present, attempting an immediate reconnect...`, shard);
-          this.reconnect(true);
-        } else {
-          shard.destroy({ reset: true, emit: false, log: false });
+          this.shardQueue.add(shard);
+
+          if (shard.sessionID) {
+            this.debug(`Session ID is present, attempting an immediate reconnect...`, shard);
+            this.reconnect(true);
+          } else {
+            shard.destroy({ reset: true, emit: false, log: false });
+            this.reconnect();
+          }
+        })
+        .on(ShardEvents.INVALID_SESSION, () => {
+          this.client.emit(Events.SHARD_RECONNECTING, shard.id);
+        })
+        .on(ShardEvents.DESTROYED, () => {
+          this.debug('Shard was destroyed but no WebSocket connection was present! Reconnecting...', shard);
+
+          this.client.emit(Events.SHARD_RECONNECTING, shard.id);
+
+          this.shardQueue.add(shard);
           this.reconnect();
-        }
-      });
-
-      shard.on(ShardEvents.INVALID_SESSION, () => {
-        this.client.emit(Events.SHARD_RECONNECTING, shard.id);
-      });
-
-      shard.on(ShardEvents.DESTROYED, () => {
-        this.debug('Shard was destroyed but no WebSocket connection was present! Reconnecting...', shard);
-
-        this.client.emit(Events.SHARD_RECONNECTING, shard.id);
-
-        this.shardQueue.add(shard);
-        this.reconnect();
-      });
+        });
 
       shard.eventsAttached = true;
     }

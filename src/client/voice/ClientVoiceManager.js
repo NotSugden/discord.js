@@ -76,33 +76,31 @@ class ClientVoiceManager {
 
       if (connection) {
         if (connection.channel.id !== channel.id) {
-          this.connections.get(channel.guild.id).updateChannel(channel);
+          connection.updateChannel(channel);
         }
         resolve(connection);
         return;
       } else {
-        connection = new VoiceConnection(this, channel);
-        connection.on('debug', msg =>
+        (connection = new VoiceConnection(this, channel).on('debug', msg =>
           this.client.emit('debug', `[VOICE (${channel.guild.id}:${connection.status})]: ${msg}`),
-        );
-        connection.authenticate();
+        )).authenticate();
         this.connections.set(channel.guild.id, connection);
       }
 
-      connection.once('failed', reason => {
-        this.connections.delete(channel.guild.id);
-        reject(reason);
-      });
-
-      connection.on('error', reject);
-
-      connection.once('authenticated', () => {
-        connection.once('ready', () => {
-          resolve(connection);
-          connection.removeListener('error', reject);
+      connection
+        .once('failed', reason => {
+          this.connections.delete(channel.guild.id);
+          reject(reason);
+        })
+        .on('error', reject)
+        .once('authenticated', () => {
+          connection
+            .once('ready', () => {
+              resolve(connection);
+              connection.removeListener('error', reject);
+            })
+            .once('disconnect', () => this.connections.delete(channel.guild.id));
         });
-        connection.once('disconnect', () => this.connections.delete(channel.guild.id));
-      });
     });
   }
 }

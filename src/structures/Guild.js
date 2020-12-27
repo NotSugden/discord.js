@@ -887,13 +887,12 @@ class Guild extends Base {
     if (!user) throw new TypeError('INVALID_TYPE', 'user', 'UserResolvable');
     if (this.members.cache.has(user)) return this.members.cache.get(user);
     options.access_token = options.accessToken;
-    options.roles = options.roles?.reduce((array, role) => {
+    options.roles = options.roles?.map(role => {
       const resolvedRole = this.guild.roles.resolve(role);
       if (!resolvedRole) {
         throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
       }
-      array.push(role);
-      return array;
+      return resolvedRole.id;
     }, []);
 
     const data = await this.client.api.guilds(this.id).members(user).put({ data: options });

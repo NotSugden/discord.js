@@ -73,25 +73,23 @@ class VoiceConnection extends EventEmitter {
      * The audio player for this voice connection
      * @type {AudioPlayer}
      */
-    this.player = new AudioPlayer(this);
-
-    this.player.on('debug', m => {
-      /**
-       * Debug info from the connection.
-       * @event VoiceConnection#debug
-       * @param {string} message The debug message
-       */
-      this.emit('debug', `audio player - ${m}`);
-    });
-
-    this.player.on('error', e => {
-      /**
-       * Warning info from the connection.
-       * @event VoiceConnection#warn
-       * @param {string|Error} warning The warning
-       */
-      this.emit('warn', e);
-    });
+    this.player = new AudioPlayer(this)
+      .on('debug', m => {
+        /**
+         * Debug info from the connection.
+         * @event VoiceConnection#debug
+         * @param {string} message The debug message
+         */
+        this.emit('debug', `audio player - ${m}`);
+      })
+      .on('error', e => {
+        /**
+         * Warning info from the connection.
+         * @event VoiceConnection#warn
+         * @param {string|Error} warning The warning
+         */
+        this.emit('warn', e);
+      });
 
     this.once('closing', () => this.player.destroy());
 
@@ -464,8 +462,7 @@ class VoiceConnection extends EventEmitter {
       ready();
     } else {
       // This serves to provide support for voice receive, sending audio is required to receive it.
-      const dispatcher = this.play(new SingleSilence(), { type: 'opus', volume: false });
-      dispatcher.once('finish', ready);
+      this.play(new SingleSilence(), { type: 'opus', volume: false }).once('finish', ready);
     }
   }
 

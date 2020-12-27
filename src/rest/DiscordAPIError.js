@@ -55,7 +55,7 @@ class DiscordAPIError extends Error {
       } else if (typeof v === 'string') {
         messages.push(v);
       } else {
-        return messages.concat(this.flattenErrors(v, newKey));
+        messages.push(...this.flattenErrors(v, newKey));
       }
       return messages;
     }, []);

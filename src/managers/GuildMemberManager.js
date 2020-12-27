@@ -295,16 +295,14 @@ class GuildMemberManager extends BaseManager {
           i === chunk.count
         ) {
           this.client.clearTimeout(timeout);
-          this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler);
-          this.client.decrementMaxListeners();
+          this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler).decrementMaxListeners();
           let fetched = option ? fetchedMembers : this.cache;
           if (user_ids && !Array.isArray(user_ids) && fetched.size) fetched = fetched.first();
           resolve(fetched);
         }
       };
       const timeout = this.client.setTimeout(() => {
-        this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler);
-        this.client.decrementMaxListeners();
+        this.client.removeListener(Events.GUILD_MEMBERS_CHUNK, handler).decrementMaxListeners();
         reject(new Error('GUILD_MEMBERS_TIMEOUT'));
       }, time);
       this.client.incrementMaxListeners();

@@ -80,18 +80,29 @@ class Guild extends Base {
     this.deleted = false;
 
     if (!data) return;
+
+    /**
+     * The use count of the vanity URL code of the guild, if any
+     * <info>You will need to fetch this parameter using {@link Guild#fetchVanityData} if you want to receive it</info>
+     * @type {?number}
+     * @name Guild#vanityURLUses
+     */
+
+    // eslint-disable-next-line max-len
+    this.maximumMembers = this.maximumPresences = this.approximateMemberCount = this.approximatePresenceCount = this.vanityURLUses = null;
+
+    /**
+     * The Unique ID of the guild, useful for comparisons
+     * @type {Snowflake}
+     */
+    this.id = data.id;
+
     if (data.unavailable) {
       /**
        * Whether the guild is available to access. If it is not available, it indicates a server outage
        * @type {boolean}
        */
       this.available = false;
-
-      /**
-       * The Unique ID of the guild, useful for comparisons
-       * @type {Snowflake}
-       */
-      this.id = data.id;
     } else {
       this._patch(data);
       if (!data.channels) this.available = false;
@@ -120,22 +131,68 @@ class Guild extends Base {
    */
   _patch(data) {
     /**
-     * The name of the guild
-     * @type {string}
+     * The ID of the voice channel where AFK members are moved
+     * @type {?Snowflake}
      */
-    this.name = data.name;
+    this.afkChannelID = data.afk_channel_id;
 
     /**
-     * The hash of the guild icon
-     * @type {?string}
+     * The time in seconds before a user is counted as "away from keyboard"
+     * @type {?number}
      */
-    this.icon = data.icon;
+    this.afkTimeout = data.afk_timeout;
 
     /**
-     * The hash of the guild invite splash image
+     * The ID of the application that created this guild (if applicable)
+     * @type {?Snowflake}
+     */
+    this.applicationID = data.application_id;
+
+    if ('approximate_member_count' in data) {
+      /**
+       * The approximate amount of members the guild has
+       * <info>You will need to fetch the guild using {@link Guild#fetch} if you want to receive this parameter</info>
+       * @type {?number}
+       */
+      this.approximateMemberCount = data.approximate_member_count;
+    }
+
+    if ('approximate_presence_count' in data) {
+      /**
+       * The approximate amount of presences the guild has
+       * <info>You will need to fetch the guild using {@link Guild#fetch} if you want to receive this parameter</info>
+       * @type {?number}
+       */
+      this.approximatePresenceCount = data.approximate_presence_count;
+    }
+
+    this.available = !data.unavailable;
+
+    /**
+     * The hash of the guild banner
      * @type {?string}
      */
-    this.splash = data.splash;
+    this.banner = data.banner;
+
+    if ('channels' in data) {
+      this.channels.cache.clear();
+      for (const rawChannel of data.channels) {
+        this.client.channels.add(rawChannel, this);
+      }
+    }
+
+    /**
+     * The value set for the guild's default message notifications
+     * @type {DefaultMessageNotifications|number}
+     */
+    this.defaultMessageNotifications =
+      DefaultMessageNotifications[data.default_message_notifications] ?? data.default_message_notifications;
+
+    /**
+     * The description of the guild, if any
+     * @type {?string}
+     */
+    this.description = data.description;
 
     /**
      * The hash of the guild discovery splash image
@@ -144,22 +201,38 @@ class Guild extends Base {
     this.discoverySplash = data.discovery_splash;
 
     /**
-     * The region the guild is located in
-     * @type {string}
+     * The embed channel ID, if enabled
+     * @type {?string}
+     * @deprecated
      */
-    this.region = data.region;
+    this.embedChannelID = data.embed_channel_id;
 
     /**
-     * The full amount of members in this guild
-     * @type {number}
-     */
-    this.memberCount = data.member_count ?? this.memberCount;
-
-    /**
-     * Whether the guild is "large" (has more than large_threshold members, 50 by default)
+     * Whether embedded images are enabled on this guild
      * @type {boolean}
+     * @deprecated
      */
-    this.large = Boolean(data.large ?? this.large);
+    this.embedEnabled = data.embed_enabled;
+
+    if (!this.emojis) {
+      /**
+       * A manager of the emojis belonging to this guild
+       * @type {GuildEmojiManager}
+       */
+      this.emojis = new GuildEmojiManager(this);
+      if (data.emojis) for (const emoji of data.emojis) this.emojis.add(emoji);
+    } else if (data.emojis) {
+      this.client.actions.GuildEmojisUpdate.handle({
+        guild_id: this.id,
+        emojis: data.emojis,
+      });
+    }
+
+    /**
+     * The explicit content filter level of the guild
+     * @type {ExplicitContentFilterLevel}
+     */
+    this.explicitContentFilter = ExplicitContentFilterLevels[data.explicit_content_filter];
 
     /**
      * An array of enabled guild features, here are the possible values:
@@ -187,28 +260,86 @@ class Guild extends Base {
     this.features = data.features;
 
     /**
-     * The ID of the application that created this guild (if applicable)
-     * @type {?Snowflake}
+     * The hash of the guild icon
+     * @type {?string}
      */
-    this.applicationID = data.application_id;
+    this.icon = data.icon;
 
     /**
-     * The time in seconds before a user is counted as "away from keyboard"
-     * @type {?number}
+     * The timestamp the client user joined the guild at
+     * @type {number}
      */
-    this.afkTimeout = data.afk_timeout;
+    this.joinedTimestamp = data.joined_at ? new Date(data.joined_at).getTime() : this.joinedTimestamp;
+
+    if ('large' in data) {
+      /**
+       * Whether the guild is "large" (has more than large_threshold members, 50 by default)
+       * @type {boolean}
+       */
+      this.large = Boolean(data.large);
+    }
+
+    if ('max_members' in data) {
+      /**
+       * The maximum amount of members the guild can have
+       * @type {?number}
+       */
+      this.maximumMembers = data.max_members;
+    }
+
+    if ('max_presences' in data) {
+      /**
+       * The maximum amount of presences the guild can have
+       * <info>You will need to fetch the guild using {@link Guild#fetch} if you want to receive this parameter</info>
+       * @type {?number}
+       */
+      this.maximumPresences = data.max_presences ?? 25000;
+    }
+
+    if ('member_count' in data) {
+      /**
+       * The full amount of members in this guild
+       * @type {number}
+       */
+      this.memberCount = data.member_count;
+    }
+
+    if ('members' in data) {
+      this.members.cache.clear();
+      for (const guildUser of data.members) this.members.add(guildUser);
+    }
 
     /**
-     * The ID of the voice channel where AFK members are moved
-     * @type {?Snowflake}
+     * The required MFA level for the guild
+     * @type {number}
      */
-    this.afkChannelID = data.afk_channel_id;
+    this.mfaLevel = data.mfa_level;
 
     /**
-     * The ID of the system channel
-     * @type {?Snowflake}
+     * The name of the guild
+     * @type {string}
      */
-    this.systemChannelID = data.system_channel_id;
+    this.name = data.name;
+
+    /**
+     * The user ID of this guild's owner
+     * @type {Snowflake}
+     */
+    this.ownerID = data.owner_id;
+
+    /**
+     * The preferred locale of the guild, defaults to `en-US`
+     * @type {string}
+     */
+    this.preferredLocale = data.preferred_locale;
+
+    if ('premium_subscription_count' in data) {
+      /**
+       * The total number of boosts for this server
+       * @type {?number}
+       */
+      this.premiumSubscriptionCount = data.premium_subscription_count;
+    }
 
     /**
      * The type of premium tier:
@@ -225,20 +356,70 @@ class Guild extends Base {
      */
     this.premiumTier = data.premium_tier;
 
-    if ('premium_subscription_count' in data) {
-      /**
-       * The total number of boosts for this server
-       * @type {?number}
-       */
-      this.premiumSubscriptionCount = data.premium_subscription_count;
+    if ('presences' in data) {
+      for (const presence of data.presences) {
+        this.presences.add(Object.assign(presence, { guild: this }));
+      }
     }
 
-    if ('widget_enabled' in data) {
-      /**
-       * Whether widget images are enabled on this guild
-       * @type {?boolean}
-       */
-      this.widgetEnabled = data.widget_enabled;
+    /**
+     * The ID of the community updates channel for the guild
+     * @type {?Snowflake}
+     */
+    this.publicUpdatesChannelID = data.public_updates_channel_id;
+
+    /**
+     * The region the guild is located in
+     * @type {string}
+     */
+    this.region = data.region;
+
+    if ('roles' in data) {
+      this.roles.cache.clear();
+      for (const role of data.roles) this.roles.add(role);
+    }
+
+    /**
+     * The ID of the rules channel for the guild
+     * @type {?Snowflake}
+     */
+    this.rulesChannelID = data.rules_channel_id;
+
+    /**
+     * The hash of the guild invite splash image
+     * @type {?string}
+     */
+    this.splash = data.splash;
+
+    /**
+     * The value set for the guild's system channel flags
+     * @type {Readonly<SystemChannelFlags>}
+     */
+    this.systemChannelFlags = new SystemChannelFlags(data.system_channel_flags).freeze();
+
+    /**
+     * The ID of the system channel
+     * @type {?Snowflake}
+     */
+    this.systemChannelID = data.system_channel_id;
+
+    /**
+     * The vanity invite code of the guild, if any
+     * @type {?string}
+     */
+    this.vanityURLCode = data.vanity_url_code;
+
+    /**
+     * The verification level of the guild
+     * @type {VerificationLevel}
+     */
+    this.verificationLevel = VerificationLevels[data.verification_level];
+
+    if ('voice_states' in data) {
+      this.voiceStates.cache.clear();
+      for (const voiceState of data.voice_states) {
+        this.voiceStates.add(voiceState);
+      }
     }
 
     if ('widget_channel_id' in data) {
@@ -249,185 +430,12 @@ class Guild extends Base {
       this.widgetChannelID = data.widget_channel_id;
     }
 
-    /**
-     * The verification level of the guild
-     * @type {VerificationLevel}
-     */
-    this.verificationLevel = VerificationLevels[data.verification_level];
-
-    /**
-     * The explicit content filter level of the guild
-     * @type {ExplicitContentFilterLevel}
-     */
-    this.explicitContentFilter = ExplicitContentFilterLevels[data.explicit_content_filter];
-
-    /**
-     * The required MFA level for the guild
-     * @type {number}
-     */
-    this.mfaLevel = data.mfa_level;
-
-    /**
-     * The timestamp the client user joined the guild at
-     * @type {number}
-     */
-    this.joinedTimestamp = data.joined_at ? new Date(data.joined_at).getTime() : this.joinedTimestamp;
-
-    /**
-     * The value set for the guild's default message notifications
-     * @type {DefaultMessageNotifications|number}
-     */
-    this.defaultMessageNotifications =
-      DefaultMessageNotifications[data.default_message_notifications] ?? data.default_message_notifications;
-
-    /**
-     * The value set for the guild's system channel flags
-     * @type {Readonly<SystemChannelFlags>}
-     */
-    this.systemChannelFlags = new SystemChannelFlags(data.system_channel_flags).freeze();
-
-    if (typeof data.max_members !== 'undefined') {
+    if ('widget_enabled' in data) {
       /**
-       * The maximum amount of members the guild can have
-       * @type {?number}
+       * Whether widget images are enabled on this guild
+       * @type {?boolean}
        */
-      this.maximumMembers = data.max_members;
-    } else if (typeof this.maximumMembers === 'undefined') {
-      this.maximumMembers = null;
-    }
-
-    if (typeof data.max_presences !== 'undefined') {
-      /**
-       * The maximum amount of presences the guild can have
-       * <info>You will need to fetch the guild using {@link Guild#fetch} if you want to receive this parameter</info>
-       * @type {?number}
-       */
-      this.maximumPresences = data.max_presences ?? 25000;
-    } else if (typeof this.maximumPresences === 'undefined') {
-      this.maximumPresences = null;
-    }
-
-    if (typeof data.approximate_member_count !== 'undefined') {
-      /**
-       * The approximate amount of members the guild has
-       * <info>You will need to fetch the guild using {@link Guild#fetch} if you want to receive this parameter</info>
-       * @type {?number}
-       */
-      this.approximateMemberCount = data.approximate_member_count;
-    } else if (typeof this.approximateMemberCount === 'undefined') {
-      this.approximateMemberCount = null;
-    }
-
-    if (typeof data.approximate_presence_count !== 'undefined') {
-      /**
-       * The approximate amount of presences the guild has
-       * <info>You will need to fetch the guild using {@link Guild#fetch} if you want to receive this parameter</info>
-       * @type {?number}
-       */
-      this.approximatePresenceCount = data.approximate_presence_count;
-    } else if (typeof this.approximatePresenceCount === 'undefined') {
-      this.approximatePresenceCount = null;
-    }
-
-    /**
-     * The vanity invite code of the guild, if any
-     * @type {?string}
-     */
-    this.vanityURLCode = data.vanity_url_code;
-
-    /* eslint-disable max-len */
-    /**
-     * The use count of the vanity URL code of the guild, if any
-     * <info>You will need to fetch this parameter using {@link Guild#fetchVanityData} if you want to receive it</info>
-     * @type {?number}
-     */
-    this.vanityURLUses = null;
-    /* eslint-enable max-len */
-
-    /**
-     * The description of the guild, if any
-     * @type {?string}
-     */
-    this.description = data.description;
-
-    /**
-     * The hash of the guild banner
-     * @type {?string}
-     */
-    this.banner = data.banner;
-
-    this.id = data.id;
-    this.available = !data.unavailable;
-    this.features = data.features ?? this.features ?? [];
-
-    /**
-     * The ID of the rules channel for the guild
-     * @type {?Snowflake}
-     */
-    this.rulesChannelID = data.rules_channel_id;
-
-    /**
-     * The ID of the community updates channel for the guild
-     * @type {?Snowflake}
-     */
-    this.publicUpdatesChannelID = data.public_updates_channel_id;
-
-    /**
-     * The preferred locale of the guild, defaults to `en-US`
-     * @type {string}
-     */
-    this.preferredLocale = data.preferred_locale;
-
-    if (data.channels) {
-      this.channels.cache.clear();
-      for (const rawChannel of data.channels) {
-        this.client.channels.add(rawChannel, this);
-      }
-    }
-
-    if (data.roles) {
-      this.roles.cache.clear();
-      for (const role of data.roles) this.roles.add(role);
-    }
-
-    if (data.members) {
-      this.members.cache.clear();
-      for (const guildUser of data.members) this.members.add(guildUser);
-    }
-
-    if (data.owner_id) {
-      /**
-       * The user ID of this guild's owner
-       * @type {Snowflake}
-       */
-      this.ownerID = data.owner_id;
-    }
-
-    if (data.presences) {
-      for (const presence of data.presences) {
-        this.presences.add(Object.assign(presence, { guild: this }));
-      }
-    }
-
-    if (data.voice_states) {
-      this.voiceStates.cache.clear();
-      for (const voiceState of data.voice_states) {
-        this.voiceStates.add(voiceState);
-      }
-    }
-
-    if (!this.emojis) {
-      /**
-       * A manager of the emojis belonging to this guild
-       * @type {GuildEmojiManager}
-       */
-      this.emojis = new GuildEmojiManager(this);
-      if (data.emojis) for (const emoji of data.emojis) this.emojis.add(emoji);
-    } else if (data.emojis) {
-      this.client.actions.GuildEmojisUpdate.handle({
-        guild_id: this.id,
-        emojis: data.emojis,
-      });
+      this.widgetEnabled = data.widget_enabled;
     }
   }
 

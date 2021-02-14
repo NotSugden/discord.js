@@ -166,14 +166,13 @@ class GuildMemberManager extends BaseManager {
     if (typeof days !== 'number') throw new TypeError('PRUNE_DAYS_TYPE');
 
     const query = { days };
-    const resolvedRoles = roles.reduce((resolved, role) => {
+    const resolvedRoles = roles.map(role => {
       const resolvedRole = this.guild.roles.resolve(role);
       if (!resolvedRole) {
         throw new TypeError('INVALID_TYPE', 'roles', 'Array of Roles or Snowflakes', true);
       }
-      resolved.push(resolvedRole.id);
-      return resolved;
-    }, []);
+      return resolvedRole.id;
+    });
 
     if (resolvedRoles.length) {
       query.include_roles = dry ? resolvedRoles.join(',') : resolvedRoles;
@@ -181,15 +180,15 @@ class GuildMemberManager extends BaseManager {
 
     const endpoint = this.client.api.guilds(this.guild.id).prune;
 
+    let pruned;
     if (dry) {
-      const { pruned } = await endpoint.get({ query, reason });
-      return pruned;
+      ({ pruned } = await endpoint.get({ query, reason }));
+    } else {
+      ({ pruned } = await endpoint.post({
+        data: { ...query, compute_prune_count },
+        reason,
+      }));
     }
-
-    const { pruned } = await endpoint.post({
-      data: { ...query, compute_prune_count },
-      reason,
-    });
     return pruned;
   }
 
@@ -215,7 +214,7 @@ class GuildMemberManager extends BaseManager {
     if (!id) throw new Error('BAN_RESOLVE_ID', true);
     await this.client.api.guilds(this.guild.id).bans(id).put({ data: options });
     if (user instanceof GuildMember) return user;
-    const _user = this.client.users.resolve(id);
+    const _user = this.client.users.resolve(user);
     if (_user) {
       const member = this.resolve(_user);
       return member ?? _user;

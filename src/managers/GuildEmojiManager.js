@@ -53,7 +53,7 @@ class GuildEmojiManager extends BaseGuildEmojiManager {
       if (!resolvedRole) {
         throw new TypeError('INVALID_TYPE', 'options.roles', 'Array or Collection of Roles or Snowflakes', true);
       }
-      return role.id;
+      return resolvedRole.id;
     });
 
     const emoji = await this.client.api.guilds(this.guild.id).emojis.post({ data, reason });

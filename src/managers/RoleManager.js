@@ -126,7 +126,7 @@ class RoleManager extends BaseManager {
       guild_id: this.guild.id,
       role: roleData,
     });
-    if (position) return role.setPosition(position, reason);
+    if (position) await role.setPosition(position, reason);
     return role;
   }
 

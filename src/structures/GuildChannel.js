@@ -89,9 +89,7 @@ class GuildChannel extends Channel {
     return this.permissionOverwrites.every((value, key) => {
       const testVal = this.parent.permissionOverwrites.get(key);
       return (
-        testVal &&
-        testVal.deny.bitfield === value.deny.bitfield &&
-        testVal.allow.bitfield === value.allow.bitfield
+        testVal && testVal.deny.bitfield === value.deny.bitfield && testVal.allow.bitfield === value.allow.bitfield
       );
     });
   }
@@ -291,8 +289,8 @@ class GuildChannel extends Channel {
    * @readonly
    */
   get members() {
-    return this.guild.members.cache.filter(
-      member => this.permissionsFor(member)?.has(Permissions.FLAGS.VIEW_CHANNEL, false)
+    return this.guild.members.cache.filter(member =>
+      this.permissionsFor(member)?.has(Permissions.FLAGS.VIEW_CHANNEL, false),
     );
   }
 

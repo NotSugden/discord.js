@@ -89,7 +89,7 @@ class GuildChannel extends Channel {
     return this.permissionOverwrites.every((value, key) => {
       const testVal = this.parent.permissionOverwrites.get(key);
       return (
-        testVal !== undefined &&
+        testVal &&
         testVal.deny.bitfield === value.deny.bitfield &&
         testVal.allow.bitfield === value.allow.bitfield
       );
@@ -115,8 +115,7 @@ class GuildChannel extends Channel {
     const member = this.guild.members.resolve(memberOrRole);
     if (member) return this.memberPermissions(member);
     const role = this.guild.roles.resolve(memberOrRole);
-    if (role) return this.rolePermissions(role);
-    return null;
+    return role && this.rolePermissions(role);
   }
 
   overwritesFor(member, verified = false, roles = null) {
@@ -272,7 +271,7 @@ class GuildChannel extends Channel {
           deny,
         },
         reason,
-      })
+      });
     return this;
   }
 
@@ -292,7 +291,9 @@ class GuildChannel extends Channel {
    * @readonly
    */
   get members() {
-    return this.guild.members.cache.filter(member => this.permissionsFor(member)?.has(Permissions.FLAGS.VIEW_CHANNEL, false));
+    return this.guild.members.cache.filter(
+      member => this.permissionsFor(member)?.has(Permissions.FLAGS.VIEW_CHANNEL, false)
+    );
   }
 
   /**
@@ -349,7 +350,7 @@ class GuildChannel extends Channel {
     if (data.lockPermissions) {
       if (data.parentID) {
         const newParent = this.guild.channels.resolve(data.parentID);
-        if (newParent && newParent.type === 'category') {
+        if (newParent?.type === 'category') {
           permission_overwrites = newParent.permissionOverwrites.map(o => PermissionOverwrites.resolve(o, this.guild));
         }
       } else if (this.parent) {
@@ -364,7 +365,7 @@ class GuildChannel extends Channel {
         topic: data.topic,
         nsfw: data.nsfw,
         bitrate: data.bitrate ?? this.bitrate,
-        user_limit: typeof data.userLimit !== 'undefined' ? data.userLimit : this.userLimit,
+        user_limit: data.userLimit ?? this.userLimit,
         parent_id: data.parentID,
         lock_permissions: data.lockPermissions,
         rate_limit_per_user: data.rateLimitPerUser,
@@ -582,14 +583,10 @@ class GuildChannel extends Channel {
     if (this.client.user.id === this.guild.ownerID) return true;
     const permissions = this.permissionsFor(this.client.user);
     if (!permissions) return null;
-    if (this.type === 'voice') {
-      if (!permissions.has(Permissions.FLAGS.CONNECT)) {
-        return false;
-      }
-    } else if (!this.viewable) {
+    if (this.type === 'voice' && !permissions.has(Permissions.FLAGS.CONNECT)) {
       return false;
     }
-    return permissions.has(Permissions.FLAGS.MANAGE_CHANNELS);
+    return this.viewable && permissions.has(Permissions.FLAGS.MANAGE_CHANNELS);
   }
 
   /**

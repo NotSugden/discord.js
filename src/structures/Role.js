@@ -219,7 +219,7 @@ class Role extends Base {
       .patch({
         data: {
           name: data.name ?? this.name,
-          color: data.color !== null ? Util.resolveColor(data.color ?? this.color) : null,
+          color: 'color' in data ? Util.resolveColor(data.color) : this.color,
           hoist: data.hoist ?? this.hoist,
           permissions: data.permissions,
           mentionable: data.mentionable ?? this.mentionable,
